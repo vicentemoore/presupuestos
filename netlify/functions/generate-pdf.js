@@ -84,7 +84,7 @@ exports.handler = async (event, context) => {
   if (data.repuestos.length === 0 && data.manoDeObra.length === 0) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ error: 'Añade al menos una fila en Repuestos o Mano de Obra' }),
+      body: JSON.stringify({ error: 'Añada al menos una fila en Repuestos o Mano de Obra' }),
       headers: { 'Content-Type': 'application/json' },
     };
   }

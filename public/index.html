@@ -525,7 +525,7 @@
       var repuestos = leerFilas(bodyRepuestos);
       var manoDeObra = leerFilas(bodyMano);
       if (repuestos.length === 0 && manoDeObra.length === 0) {
-        showMessage('Añade al menos una fila en Repuestos o Mano de Obra.', true);
+        showMessage('Añada al menos una fila en Repuestos o Mano de Obra.', true);
         return;
       }
       btnPdf.disabled = true;
@@ -548,10 +548,14 @@
           throw new Error(err.error || err.detail || 'Error al generar el PDF');
         }
         var blob = await res.blob();
+        var vehiculo = leerVehiculo();
+        var marca = (vehiculo.marca || '').trim().replace(/[/\\:*?"<>|]/g, '') || 'Marca';
+        var modelo = (vehiculo.modelo || '').trim().replace(/[/\\:*?"<>|]/g, '') || 'Modelo';
+        var filename = 'Presupuesto ' + marca + ' ' + modelo + '.pdf';
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
         a.href = url;
-        a.download = 'presupuesto.pdf';
+        a.download = filename;
         a.click();
         URL.revokeObjectURL(url);
         showMessage('PDF generado correctamente.', false);
