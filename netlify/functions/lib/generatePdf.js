@@ -9,7 +9,7 @@ const CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN;
 const FONT_SIZE = 10;
 const FONT_SIZE_TITLE = 14;
 const FONT_SIZE_PRESUPUESTO = 11;
-const FONT_SIZE_SECTION = 12;
+const FONT_SIZE_SECTION = 13;
 const FONT_SIZE_DATOS = 11;
 const ROW_HEIGHT = 18;
 const LINE_HEIGHT = 14;
@@ -19,6 +19,8 @@ const BORDER_THICK = 1;
 // Tabla
 const COL_VALOR_WIDTH = 95;
 const COL_DESC_WIDTH = CONTENT_WIDTH - COL_VALOR_WIDTH;
+const DESC_INDENT = 12; // margen izquierdo en celdas de descripción (Repuestos/Mano de Obra)
+const DESC_MAX_WIDTH = COL_DESC_WIDTH - DESC_INDENT - 6; // ancho útil para texto antes de columna Valor
 
 // Logo (altura fija, doble de tamaño)
 const LOGO_HEIGHT = 104;
@@ -58,6 +60,50 @@ function truncateToWidth(text, maxChars) {
   const safe = String(text);
   if (safe.length <= maxChars) return safe;
   return safe.slice(0, maxChars - 3) + '...';
+}
+
+/**
+ * Divide el texto en líneas que no superen maxWidth (en puntos).
+ * Usa la fuente para medir; si una palabra se pasa, la parte en la línea siguiente.
+ */
+function wrapTextByWidth(text, font, fontSize, maxWidth) {
+  const safe = String(text).trim();
+  if (!safe) return [];
+  const words = safe.split(/\s+/);
+  const lines = [];
+  let current = '';
+  for (const word of words) {
+    const candidate = current ? current + ' ' + word : word;
+    const w = font.widthOfTextAtSize(candidate, fontSize);
+    if (w <= maxWidth) {
+      current = candidate;
+    } else {
+      if (current) lines.push(current);
+      if (font.widthOfTextAtSize(word, fontSize) <= maxWidth) {
+        current = word;
+      } else {
+        let rest = word;
+        while (rest) {
+          let chunk = '';
+          for (let i = 0; i < rest.length; i++) {
+            if (font.widthOfTextAtSize(chunk + rest[i], fontSize) <= maxWidth) chunk += rest[i];
+            else break;
+          }
+          if (chunk) {
+            lines.push(chunk);
+            rest = rest.slice(chunk.length);
+          } else {
+            chunk = rest[0];
+            rest = rest.slice(1);
+            lines.push(chunk);
+          }
+        }
+        current = '';
+      }
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
 }
 
 async function generatePresupuestoPdf(data, logoBuffer) {
@@ -136,7 +182,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   const labelWidth = 52;
   const clienteValueX = MARGIN + 6 + labelWidth;
   const col2X = MARGIN + CONTENT_WIDTH * 0.5;
-  const clienteBoxHeight = LINE_HEIGHT + 8 + 3 * LINE_HEIGHT + LINE_HEIGHT + 10; // 3 filas + Email
+  const clienteBoxHeight = LINE_HEIGHT + 8 + 6 + 3 * LINE_HEIGHT + LINE_HEIGHT + 10; // título + espacio + 3 filas + Email
   const clienteBoxY = y - clienteBoxHeight;
   drawRect(page, MARGIN, clienteBoxY, CONTENT_WIDTH, clienteBoxHeight);
   page.drawText('Datos del Cliente', {
@@ -146,7 +192,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     font: fontBold,
     color: black,
   });
-  y -= LINE_HEIGHT + 12;
+  y -= LINE_HEIGHT + 18;
   const c = data.cliente || {};
   // Filas: Nombre/Fecha, Rut/Fono, Dirección (solo izq), Email (abajo)
   page.drawText('Nombre', { x: MARGIN + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
@@ -164,10 +210,10 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   y -= LINE_HEIGHT;
   page.drawText('Email', { x: MARGIN + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
   page.drawText(c.email || '', { x: clienteValueX, y, size: FONT_SIZE_DATOS, font, color: black });
-  y -= 22;
+  y -= 30;
 
   // --- Recuadro Datos del Vehículo (más espacio respecto a Cliente) ---
-  const vehiculoBoxHeight = LINE_HEIGHT + 8 + 4 * LINE_HEIGHT + 10;
+  const vehiculoBoxHeight = LINE_HEIGHT + 8 + 6 + 4 * LINE_HEIGHT + 10;
   const vehiculoBoxY = y - vehiculoBoxHeight;
   drawRect(page, MARGIN, vehiculoBoxY, CONTENT_WIDTH, vehiculoBoxHeight);
   page.drawText('Datos del Vehículo', {
@@ -177,7 +223,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     font: fontBold,
     color: black,
   });
-  y -= LINE_HEIGHT + 12;
+  y -= LINE_HEIGHT + 18;
   const v = data.vehiculo || {};
   const vehiculoLeft = [
     { label: 'Patente', value: v.patente || '' },
@@ -219,7 +265,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   });
   y -= ROW_HEIGHT + 14;
 
-  // Repuestos (bien separado del encabezado)
+  // Repuestos (bien separado del encabezado; descripción con margen y wrap completo)
   page.drawText('Repuestos', {
     x: MARGIN,
     y,
@@ -232,16 +278,27 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     const cantidad = Math.max(1, parseInt(item.cantidad, 10) || 1);
     const descBase = String(item.descripcion || '').trim();
     const descSuffix = cantidad > 1 ? ' (x' + cantidad + ')' : '';
-    const desc = truncateToWidth(descBase, 50 - descSuffix.length) + descSuffix;
-    page.drawText(desc, { x: MARGIN, y, size: FONT_SIZE, font, color: black });
+    const fullDesc = descBase + descSuffix;
+    const descLines = wrapTextByWidth(fullDesc, font, FONT_SIZE, DESC_MAX_WIDTH);
+    const firstLineY = y;
+    for (let i = 0; i < descLines.length; i++) {
+      page.drawText(descLines[i], {
+        x: MARGIN + DESC_INDENT,
+        y: y,
+        size: FONT_SIZE,
+        font,
+        color: black,
+      });
+      y -= LINE_HEIGHT;
+    }
     page.drawText(formatMoneda(item.valorTotal), {
-      x: MARGIN + COL_DESC_WIDTH,
-      y,
+      x: MARGIN + COL_DESC_WIDTH + 6,
+      y: firstLineY,
       size: FONT_SIZE,
       font,
       color: black,
     });
-    y -= ROW_HEIGHT;
+    y -= Math.max(0, ROW_HEIGHT - descLines.length * LINE_HEIGHT);
   }
   y -= 4;
 
@@ -258,16 +315,27 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     const cantidad = Math.max(1, parseInt(item.cantidad, 10) || 1);
     const descBase = String(item.descripcion || '').trim();
     const descSuffix = cantidad > 1 ? ' (x' + cantidad + ')' : '';
-    const desc = truncateToWidth(descBase, 50 - descSuffix.length) + descSuffix;
-    page.drawText(desc, { x: MARGIN, y, size: FONT_SIZE, font, color: black });
+    const fullDesc = descBase + descSuffix;
+    const descLines = wrapTextByWidth(fullDesc, font, FONT_SIZE, DESC_MAX_WIDTH);
+    const firstLineY = y;
+    for (let i = 0; i < descLines.length; i++) {
+      page.drawText(descLines[i], {
+        x: MARGIN + DESC_INDENT,
+        y: y,
+        size: FONT_SIZE,
+        font,
+        color: black,
+      });
+      y -= LINE_HEIGHT;
+    }
     page.drawText(formatMoneda(item.valorTotal), {
-      x: MARGIN + COL_DESC_WIDTH,
-      y,
+      x: MARGIN + COL_DESC_WIDTH + 6,
+      y: firstLineY,
       size: FONT_SIZE,
       font,
       color: black,
     });
-    y -= ROW_HEIGHT;
+    y -= Math.max(0, ROW_HEIGHT - descLines.length * LINE_HEIGHT);
   }
   y -= 6;
 
