@@ -156,11 +156,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   });
   y -= LINE_HEIGHT;
 
-  // --- Recuadro contacto (derecha) ---
-  const contactoHeight = 7 * LINE_HEIGHT + CONTACTO_PAD * 2;
-  const contactoX = PAGE_WIDTH - MARGIN - CONTACTO_WIDTH;
-  const contactoY = height - MARGIN - contactoHeight;
-  drawRect(page, contactoX, contactoY, CONTACTO_WIDTH, contactoHeight);
+  // --- Recuadro contacto (derecha); altura según cantidad de líneas ---
   const contactLines = [
     'Joaquin Miranda T',
     'Sanchez Fontecilla 4655',
@@ -168,6 +164,10 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     '+56 9 8136 7788',
     'COPIA CLIENTE',
   ];
+  const contactoHeight = contactLines.length * LINE_HEIGHT + CONTACTO_PAD * 2;
+  const contactoX = PAGE_WIDTH - MARGIN - CONTACTO_WIDTH;
+  const contactoY = height - MARGIN - contactoHeight;
+  drawRect(page, contactoX, contactoY, CONTACTO_WIDTH, contactoHeight);
   let yContacto = height - MARGIN - CONTACTO_PAD - 12;
   contactLines.forEach((line) => {
     page.drawText(line, {
