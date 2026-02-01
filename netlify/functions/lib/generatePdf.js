@@ -58,25 +58,33 @@ function truncateToWidth(text, maxChars) {
   return safe.slice(0, maxChars - 3) + '...';
 }
 
-async function generatePresupuestoPdf(data) {
+async function generatePresupuestoPdf(data, logoBuffer) {
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
   const page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
   const { height } = page.getSize();
 
-  // --- Logo (izquierda); en Netlify logo.png está en lib/ junto a este archivo ---
-  const logoPath = path.join(__dirname, 'logo.png');
-  if (fs.existsSync(logoPath)) {
-    const logoBytes = fs.readFileSync(logoPath);
-    const logoImage = await doc.embedPng(logoBytes);
-    const scale = LOGO_HEIGHT / logoImage.height;
-    page.drawImage(logoImage, {
-      x: MARGIN,
-      y: height - MARGIN - LOGO_HEIGHT,
-      width: logoImage.width * scale,
-      height: LOGO_HEIGHT,
-    });
+  // --- Logo: usar buffer enviado desde la web; si no, intentar archivo local ---
+  let logoBytes = logoBuffer && Buffer.isBuffer(logoBuffer) ? logoBuffer : null;
+  if (!logoBytes && typeof logoBuffer === 'object' && logoBuffer !== null && logoBuffer.length > 0) {
+    logoBytes = Buffer.from(logoBuffer);
+  }
+  if (!logoBytes) {
+    const logoPath = path.join(__dirname, 'logo.png');
+    if (fs.existsSync(logoPath)) logoBytes = fs.readFileSync(logoPath);
+  }
+  if (logoBytes && logoBytes.length > 0) {
+    try {
+      const logoImage = await doc.embedPng(logoBytes);
+      const scale = LOGO_HEIGHT / logoImage.height;
+      page.drawImage(logoImage, {
+        x: MARGIN,
+        y: height - MARGIN - LOGO_HEIGHT,
+        width: logoImage.width * scale,
+        height: LOGO_HEIGHT,
+      });
+    } catch (_) {}
   }
 
   // --- Título y número (a la derecha del logo) ---
@@ -141,15 +149,16 @@ async function generatePresupuestoPdf(data) {
     color: black,
   });
   y -= LINE_HEIGHT + 12;
+  const c = data.cliente || {};
   const clienteLeft = [
-    { label: 'Nombre', value: 'LICORES.CL SPA' },
-    { label: 'Rut', value: '76563323-0' },
-    { label: 'Dirección', value: 'SALOMON SUMAR 3420, J-1. San Joaquín' },
+    { label: 'Nombre', value: c.nombre || '' },
+    { label: 'Rut', value: c.rut || '' },
+    { label: 'Dirección', value: c.direccion || '' },
   ];
   const clienteRight = [
-    { label: 'Fecha', value: '17/03/2023' },
-    { label: 'Fono', value: '+56 9 8259-6903' },
-    { label: 'Email', value: 'xxxx@xxx' },
+    { label: 'Fecha', value: c.fecha || '' },
+    { label: 'Fono', value: c.fono || '' },
+    { label: 'Email', value: c.email || '' },
   ];
   const col2X = MARGIN + CONTENT_WIDTH * 0.5;
   for (let i = 0; i < 3; i++) {
@@ -173,17 +182,18 @@ async function generatePresupuestoPdf(data) {
     color: black,
   });
   y -= LINE_HEIGHT + 12;
+  const v = data.vehiculo || {};
   const vehiculoLeft = [
-    { label: 'Patente', value: 'JDZC-59' },
-    { label: 'Marca', value: 'HYUNDAI' },
-    { label: 'Kilometraje', value: '120.563' },
-    { label: 'Combustible', value: 'Diesel' },
+    { label: 'Patente', value: v.patente || '' },
+    { label: 'Marca', value: v.marca || '' },
+    { label: 'Kilometraje', value: v.kilometraje || '' },
+    { label: 'Combustible', value: v.combustible || '' },
   ];
   const vehiculoRight = [
-    { label: 'Año', value: '2017' },
-    { label: 'Modelo', value: 'H1 Fg Crdi Gl 2.5' },
-    { label: 'VIN', value: 'KMFWBX7KAGU806376' },
-    { label: 'Color', value: 'BLANCO' },
+    { label: 'Año', value: v.ano || '' },
+    { label: 'Modelo', value: v.modelo || '' },
+    { label: 'VIN', value: v.vin || '' },
+    { label: 'Color', value: v.color || '' },
   ];
   for (let i = 0; i < 4; i++) {
     page.drawText(vehiculoLeft[i].label, { x: MARGIN + 6, y, size: FONT_SIZE, font: fontBold, color: black });
@@ -275,19 +285,6 @@ async function generatePresupuestoPdf(data) {
     x: MARGIN + COL_DESC_WIDTH + 6,
     y: y - 13,
     size: FONT_SIZE,
-    font: fontBold,
-    color: black,
-  });
-  y -= ROW_HEIGHT + 14;
-
-  // --- Recuadro Trabajo a realizar ---
-  const trabajoBoxHeight = LINE_HEIGHT + 16;
-  const trabajoBoxY = y - trabajoBoxHeight;
-  drawRect(page, MARGIN, trabajoBoxY, CONTENT_WIDTH, trabajoBoxHeight);
-  page.drawText('Trabajo a realizar', {
-    x: MARGIN + 6,
-    y: y - 14,
-    size: FONT_SIZE_SECTION,
     font: fontBold,
     color: black,
   });

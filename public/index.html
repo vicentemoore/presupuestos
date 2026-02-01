@@ -16,6 +16,10 @@
     h1 { font-size: 1.5rem; margin-bottom: 1.5rem; }
     section { margin-bottom: 2rem; }
     section h2 { font-size: 1.1rem; margin-bottom: 0.75rem; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1rem; margin-bottom: 1rem; }
+    .form-grid label { display: block; font-weight: 500; margin-bottom: 0.25rem; }
+    .form-grid input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+    .form-grid .full { grid-column: 1 / -1; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; }
     th, td {
       padding: 0.5rem;
@@ -53,6 +57,74 @@
 </head>
 <body>
   <h1>Presupuestos</h1>
+
+  <section>
+    <h2>Datos del Cliente</h2>
+    <div class="form-grid">
+      <div>
+        <label for="cliente-nombre">Nombre</label>
+        <input type="text" id="cliente-nombre" placeholder="Ej. LICORES.CL SPA">
+      </div>
+      <div>
+        <label for="cliente-fecha">Fecha</label>
+        <input type="text" id="cliente-fecha" placeholder="Ej. 17/03/2023">
+      </div>
+      <div>
+        <label for="cliente-rut">Rut</label>
+        <input type="text" id="cliente-rut" placeholder="Ej. 76563323-0">
+      </div>
+      <div>
+        <label for="cliente-fono">Fono</label>
+        <input type="text" id="cliente-fono" placeholder="Ej. +56 9 8259-6903">
+      </div>
+      <div class="full">
+        <label for="cliente-direccion">Dirección</label>
+        <input type="text" id="cliente-direccion" placeholder="Ej. SALOMON SUMAR 3420, J-1. San Joaquín">
+      </div>
+      <div>
+        <label for="cliente-email">Email</label>
+        <input type="text" id="cliente-email" placeholder="Ej. xxxx@xxx">
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Datos del Vehículo</h2>
+    <div class="form-grid">
+      <div>
+        <label for="vehiculo-patente">Patente</label>
+        <input type="text" id="vehiculo-patente" placeholder="Ej. JDZC-59">
+      </div>
+      <div>
+        <label for="vehiculo-ano">Año</label>
+        <input type="text" id="vehiculo-ano" placeholder="Ej. 2017">
+      </div>
+      <div>
+        <label for="vehiculo-marca">Marca</label>
+        <input type="text" id="vehiculo-marca" placeholder="Ej. HYUNDAI">
+      </div>
+      <div>
+        <label for="vehiculo-modelo">Modelo</label>
+        <input type="text" id="vehiculo-modelo" placeholder="Ej. H1 Fg Crdi Gl 2.5">
+      </div>
+      <div>
+        <label for="vehiculo-kilometraje">Kilometraje</label>
+        <input type="text" id="vehiculo-kilometraje" placeholder="Ej. 120.563">
+      </div>
+      <div>
+        <label for="vehiculo-vin">VIN</label>
+        <input type="text" id="vehiculo-vin" placeholder="Ej. KMFWBX7KAGU806376">
+      </div>
+      <div>
+        <label for="vehiculo-combustible">Combustible</label>
+        <input type="text" id="vehiculo-combustible" placeholder="Ej. Diesel">
+      </div>
+      <div>
+        <label for="vehiculo-color">Color</label>
+        <input type="text" id="vehiculo-color" placeholder="Ej. BLANCO">
+      </div>
+    </div>
+  </section>
 
   <section>
     <h2>Repuestos</h2>
@@ -97,33 +169,21 @@
     const btnPdf = document.getElementById('btn-pdf');
     const message = document.getElementById('message');
 
-    function filaTabla(onRemove) {
+    function filaTabla() {
       const tr = document.createElement('tr');
       tr.innerHTML =
         '<td class="col-desc"><input type="text" name="desc" placeholder="Descripción"></td>' +
         '<td class="col-cant"><input type="number" name="cant" min="0" value="1" placeholder="0"></td>' +
         '<td class="col-valor"><input type="number" name="valor" min="0" value="0" placeholder="0"></td>' +
         '<td class="col-del"><button type="button" class="btn-row" title="Quitar fila">Quitar</button></td>';
-      const desc = tr.querySelector('input[name="desc"]');
-      const cant = tr.querySelector('input[name="cant"]');
-      const valor = tr.querySelector('input[name="valor"]');
-      tr.querySelector('.btn-row').addEventListener('click', () => {
-        tr.remove();
-      });
-      return { tr, desc, cant, valor };
+      tr.querySelector('.btn-row').addEventListener('click', () => tr.remove());
+      return tr;
     }
-
-    function addFila(tbody) {
-      const { tr } = filaTabla();
-      tbody.appendChild(tr);
-    }
-
+    function addFila(tbody) { tbody.appendChild(filaTabla()); }
     addRepuesto.addEventListener('click', () => addFila(bodyRepuestos));
     addMano.addEventListener('click', () => addFila(bodyMano));
-
-    // Una fila inicial en cada tabla
-    bodyRepuestos.appendChild(filaTabla().tr);
-    bodyMano.appendChild(filaTabla().tr);
+    bodyRepuestos.appendChild(filaTabla());
+    bodyMano.appendChild(filaTabla());
 
     function leerFilas(tbody) {
       const items = [];
@@ -136,8 +196,47 @@
       return items;
     }
 
+    function leerCliente() {
+      return {
+        nombre: document.getElementById('cliente-nombre').value.trim(),
+        fecha: document.getElementById('cliente-fecha').value.trim(),
+        rut: document.getElementById('cliente-rut').value.trim(),
+        fono: document.getElementById('cliente-fono').value.trim(),
+        direccion: document.getElementById('cliente-direccion').value.trim(),
+        email: document.getElementById('cliente-email').value.trim(),
+      };
+    }
+    function leerVehiculo() {
+      return {
+        patente: document.getElementById('vehiculo-patente').value.trim(),
+        ano: document.getElementById('vehiculo-ano').value.trim(),
+        marca: document.getElementById('vehiculo-marca').value.trim(),
+        modelo: document.getElementById('vehiculo-modelo').value.trim(),
+        kilometraje: document.getElementById('vehiculo-kilometraje').value.trim(),
+        vin: document.getElementById('vehiculo-vin').value.trim(),
+        combustible: document.getElementById('vehiculo-combustible').value.trim(),
+        color: document.getElementById('vehiculo-color').value.trim(),
+      };
+    }
+
     function showMessage(text, isError) {
       message.innerHTML = '<div class="' + (isError ? 'error' : 'success') + '">' + text + '</div>';
+    }
+
+    function logoToBase64() {
+      return fetch(window.location.origin + '/logo.png')
+        .then((r) => r.blob())
+        .then((blob) => new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const dataUrl = reader.result;
+            const b64 = dataUrl.split(',')[1];
+            resolve(b64 || '');
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        }))
+        .catch(() => '');
     }
 
     btnPdf.addEventListener('click', async () => {
@@ -150,10 +249,17 @@
       }
       btnPdf.disabled = true;
       try {
+        const logo = await logoToBase64();
         const res = await fetch(window.location.origin + '/.netlify/functions/generate-pdf', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ repuestos, manoDeObra }),
+          body: JSON.stringify({
+            repuestos,
+            manoDeObra,
+            cliente: leerCliente(),
+            vehiculo: leerVehiculo(),
+            logo: logo || undefined,
+          }),
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));

@@ -20,12 +20,40 @@ function payloadToPdfData(body) {
   const totalManoDeObra = manoDeObra.reduce((s, m) => s + m.valorTotal, 0);
   const totalPresupuesto = totalRepuestos + totalManoDeObra;
 
+  const cliente = body.cliente || {};
+  const vehiculo = body.vehiculo || {};
+  let logoBuffer = null;
+  if (body.logo && typeof body.logo === 'string') {
+    try {
+      logoBuffer = Buffer.from(body.logo, 'base64');
+    } catch (_) {}
+  }
+
   return {
     repuestos,
     manoDeObra,
     totalRepuestos,
     totalManoDeObra,
     totalPresupuesto,
+    cliente: {
+      nombre: String(cliente.nombre || '').trim(),
+      fecha: String(cliente.fecha || '').trim(),
+      rut: String(cliente.rut || '').trim(),
+      fono: String(cliente.fono || '').trim(),
+      direccion: String(cliente.direccion || '').trim(),
+      email: String(cliente.email || '').trim(),
+    },
+    vehiculo: {
+      patente: String(vehiculo.patente || '').trim(),
+      ano: String(vehiculo.ano || '').trim(),
+      marca: String(vehiculo.marca || '').trim(),
+      modelo: String(vehiculo.modelo || '').trim(),
+      kilometraje: String(vehiculo.kilometraje || '').trim(),
+      vin: String(vehiculo.vin || '').trim(),
+      combustible: String(vehiculo.combustible || '').trim(),
+      color: String(vehiculo.color || '').trim(),
+    },
+    logoBuffer,
   };
 }
 
@@ -59,7 +87,7 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const pdfBytes = await generatePresupuestoPdf(data);
+    const pdfBytes = await generatePresupuestoPdf(data, data.logoBuffer);
     const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
     return {
       statusCode: 200,
