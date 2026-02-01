@@ -219,9 +219,24 @@
       border-color: #3b82f6;
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
     }
+    .header-logo {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .header-logo img {
+      max-height: 80px;
+      width: auto;
+      display: inline-block;
+    }
+    .presupuesto-num-wrap {
+      justify-content: center;
+    }
   </style>
 </head>
 <body>
+  <header class="header-logo">
+    <img src="logo.png" alt="Logo" width="80" height="80">
+  </header>
   <h1>Presupuestos</h1>
 
   <div class="presupuesto-num-wrap">
@@ -393,7 +408,7 @@
         '<td class="col-cant"><input type="number" name="cant" min="0" value="1" placeholder="0"></td>' +
         '<td class="col-valor"><div class="col-valor-cell"><span class="valor-prefix">$</span><input type="text" name="valor" placeholder="0" data-raw="0"></div></td>' +
         '<td class="col-total-cell" tabindex="-1" aria-readonly="true"></td>' +
-        '<td class="col-del"><button type="button" class="btn-row" title="Quitar fila">Quitar</button></td>';
+        '<td class="col-del"><button type="button" class="btn-row" title="Eliminar fila">Eliminar</button></td>';
       var cantInput = tr.querySelector('input[name="cant"]');
       var valorInput = tr.querySelector('input[name="valor"]');
       valorInput.addEventListener('input', function() {

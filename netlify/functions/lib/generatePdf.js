@@ -178,9 +178,10 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   y = contactoY - 12;
   y -= LINE_HEIGHT + 4;
 
-  // --- Recuadro Datos del Cliente (valores más cerca de labels; Email abajo) ---
+  // --- Recuadro Datos del Cliente (valores con algo más de margen respecto a labels) ---
   const labelWidth = 52;
-  const clienteValueX = MARGIN + 6 + labelWidth;
+  const clienteValueGap = 14;
+  const clienteValueX = MARGIN + 6 + labelWidth + clienteValueGap;
   const col2X = MARGIN + CONTENT_WIDTH * 0.5;
   const clienteBoxHeight = LINE_HEIGHT + 8 + 6 + 3 * LINE_HEIGHT + LINE_HEIGHT + 10; // título + espacio + 3 filas + Email
   const clienteBoxY = y - clienteBoxHeight;
