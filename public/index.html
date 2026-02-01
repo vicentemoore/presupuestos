@@ -8,7 +8,7 @@
     * { box-sizing: border-box; }
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      max-width: 1000px;
+      max-width: 1280px;
       margin: 0 auto;
       padding: 1.5rem 1.5rem 3rem;
       color: #1e293b;
@@ -27,7 +27,7 @@
       grid-template-columns: 1fr 1fr;
       gap: 1.5rem;
     }
-    @media (max-width: 768px) {
+    @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; }
     }
     .section-card {
@@ -43,10 +43,25 @@
     .section-card.repuestos { border-left-color: #22c55e; }
     .section-card.mano { border-left-color: #f59e0b; }
     .section-card h2 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
       font-size: 1.1rem;
       font-weight: 600;
       margin: 0 0 1rem 0;
       color: #334155;
+    }
+    .section-card h2 .section-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.5rem;
+      height: 1.5rem;
+      flex-shrink: 0;
+    }
+    .section-card h2 .section-icon svg {
+      width: 100%;
+      height: 100%;
     }
     .form-grid {
       display: grid;
@@ -103,6 +118,20 @@
       border-color: #3b82f6;
     }
     td input[type="number"] { text-align: right; }
+    .col-valor-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .col-valor-cell .valor-prefix {
+      color: #475569;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+    .col-valor-cell input {
+      text-align: right;
+      min-width: 0;
+    }
     .col-desc { width: 50%; }
     .col-cant { width: 15%; }
     .col-valor { width: 20%; }
@@ -130,7 +159,7 @@
     .btn-add:hover { background: #16a34a; }
     .btn-pdf {
       width: 100%;
-      max-width: 1000px;
+      max-width: 1280px;
       margin: 1.5rem auto 0;
       padding: 0.85rem 1.25rem;
       font-size: 1rem;
@@ -197,110 +226,130 @@
     <input type="text" id="presupuesto-num" value="" placeholder="Ej. 0000001855">
   </div>
 
+  <!-- Fila 1: Cliente (izq) | Vehículo (der) -->
   <div class="layout">
-    <div>
-      <section class="section-card">
-        <h2>Datos del Cliente</h2>
-        <div class="form-grid">
-          <div>
-            <label for="cliente-nombre">Nombre</label>
-            <input type="text" id="cliente-nombre" value="LICORES.CL SPA" placeholder="Ej. LICORES.CL SPA">
-          </div>
-          <div>
-            <label for="cliente-fecha">Fecha</label>
-            <input type="date" id="cliente-fecha" value="2023-03-17">
-          </div>
-          <div>
-            <label for="cliente-rut">Rut</label>
-            <input type="text" id="cliente-rut" value="76563323-0" placeholder="Ej. 76563323-0">
-          </div>
-          <div>
-            <label for="cliente-fono">Fono</label>
-            <input type="text" id="cliente-fono" value="+56 9 8259-6903" placeholder="Ej. +56 9 8259-6903">
-          </div>
-          <div class="full">
-            <label for="cliente-direccion">Dirección</label>
-            <input type="text" id="cliente-direccion" value="SALOMON SUMAR 3420, J-1. San Joaquín" placeholder="Ej. SALOMON SUMAR 3420, J-1. San Joaquín">
-          </div>
-          <div>
-            <label for="cliente-email">Email</label>
-            <input type="text" id="cliente-email" value="xxxx@xxx" placeholder="Ej. xxxx@xxx">
-          </div>
+    <section class="section-card">
+      <h2>
+        <span class="section-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </span>
+        Datos del Cliente
+      </h2>
+      <div class="form-grid">
+        <div>
+          <label for="cliente-nombre">Nombre</label>
+          <input type="text" id="cliente-nombre" value="LICORES.CL SPA" placeholder="Ej. LICORES.CL SPA">
         </div>
-      </section>
-
-      <section class="section-card vehiculo">
-        <h2>Datos del Vehículo</h2>
-        <div class="form-grid">
-          <div>
-            <label for="vehiculo-patente">Patente</label>
-            <input type="text" id="vehiculo-patente" value="JDZC-59" placeholder="Ej. JDZC-59">
-          </div>
-          <div>
-            <label for="vehiculo-ano">Año</label>
-            <input type="text" id="vehiculo-ano" value="2017" placeholder="Ej. 2017">
-          </div>
-          <div>
-            <label for="vehiculo-marca">Marca</label>
-            <input type="text" id="vehiculo-marca" value="HYUNDAI" placeholder="Ej. HYUNDAI">
-          </div>
-          <div>
-            <label for="vehiculo-modelo">Modelo</label>
-            <input type="text" id="vehiculo-modelo" value="H1 Fg Crdi Gl 2.5" placeholder="Ej. H1 Fg Crdi Gl 2.5">
-          </div>
-          <div>
-            <label for="vehiculo-kilometraje">Kilometraje</label>
-            <input type="number" id="vehiculo-kilometraje" value="120563" min="0" step="1" placeholder="Ej. 120563">
-          </div>
-          <div>
-            <label for="vehiculo-vin">VIN</label>
-            <input type="text" id="vehiculo-vin" value="KMFWBX7KAGU806376" placeholder="Ej. KMFWBX7KAGU806376">
-          </div>
-          <div>
-            <label for="vehiculo-combustible">Combustible</label>
-            <input type="text" id="vehiculo-combustible" value="Diesel" placeholder="Ej. Diesel">
-          </div>
-          <div>
-            <label for="vehiculo-color">Color</label>
-            <input type="text" id="vehiculo-color" value="BLANCO" placeholder="Ej. BLANCO">
-          </div>
+        <div>
+          <label for="cliente-fecha">Fecha</label>
+          <input type="date" id="cliente-fecha" value="2023-03-17">
         </div>
-      </section>
-    </div>
+        <div>
+          <label for="cliente-rut">Rut</label>
+          <input type="text" id="cliente-rut" value="76563323-0" placeholder="Ej. 76563323-0">
+        </div>
+        <div>
+          <label for="cliente-fono">Fono</label>
+          <input type="text" id="cliente-fono" value="+56 9 8259-6903" placeholder="Ej. +56 9 8259-6903">
+        </div>
+        <div class="full">
+          <label for="cliente-direccion">Dirección</label>
+          <input type="text" id="cliente-direccion" value="SALOMON SUMAR 3420, J-1. San Joaquín" placeholder="Ej. SALOMON SUMAR 3420, J-1. San Joaquín">
+        </div>
+        <div>
+          <label for="cliente-email">Email</label>
+          <input type="text" id="cliente-email" value="xxxx@xxx" placeholder="Ej. xxxx@xxx">
+        </div>
+      </div>
+    </section>
 
-    <div>
-      <section class="section-card repuestos">
-        <h2>Repuestos</h2>
-        <table id="tabla-repuestos">
-          <thead>
-            <tr>
-              <th class="col-desc">Descripción</th>
-              <th class="col-cant">Cantidad</th>
-              <th class="col-valor">Valor</th>
-              <th class="col-del"></th>
-            </tr>
-          </thead>
-          <tbody id="body-repuestos"></tbody>
-        </table>
-        <button type="button" class="btn-add" id="add-repuesto">+ Añadir fila</button>
-      </section>
+    <section class="section-card vehiculo">
+      <h2>
+        <span class="section-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H8.24a1 1 0 0 0-.8.4L4.84 11l-5.16.86a1 1 0 0 0-.84.99V16h3"/><circle cx="17.5" cy="17.5" r="2.5"/><circle cx="7.5" cy="17.5" r="2.5"/></svg>
+        </span>
+        Datos del Vehículo
+      </h2>
+      <div class="form-grid">
+        <div>
+          <label for="vehiculo-patente">Patente</label>
+          <input type="text" id="vehiculo-patente" value="JDZC-59" placeholder="Ej. JDZC-59">
+        </div>
+        <div>
+          <label for="vehiculo-ano">Año</label>
+          <input type="text" id="vehiculo-ano" value="2017" placeholder="Ej. 2017">
+        </div>
+        <div>
+          <label for="vehiculo-marca">Marca</label>
+          <input type="text" id="vehiculo-marca" value="HYUNDAI" placeholder="Ej. HYUNDAI">
+        </div>
+        <div>
+          <label for="vehiculo-modelo">Modelo</label>
+          <input type="text" id="vehiculo-modelo" value="H1 Fg Crdi Gl 2.5" placeholder="Ej. H1 Fg Crdi Gl 2.5">
+        </div>
+        <div>
+          <label for="vehiculo-kilometraje">Kilometraje</label>
+          <input type="number" id="vehiculo-kilometraje" value="120563" min="0" step="1" placeholder="Ej. 120563">
+        </div>
+        <div>
+          <label for="vehiculo-vin">VIN</label>
+          <input type="text" id="vehiculo-vin" value="KMFWBX7KAGU806376" placeholder="Ej. KMFWBX7KAGU806376">
+        </div>
+        <div>
+          <label for="vehiculo-combustible">Combustible</label>
+          <input type="text" id="vehiculo-combustible" value="Diesel" placeholder="Ej. Diesel">
+        </div>
+        <div>
+          <label for="vehiculo-color">Color</label>
+          <input type="text" id="vehiculo-color" value="BLANCO" placeholder="Ej. BLANCO">
+        </div>
+      </div>
+    </section>
+  </div>
 
-      <section class="section-card mano">
-        <h2>Mano de Obra</h2>
-        <table id="tabla-mano">
-          <thead>
-            <tr>
-              <th class="col-desc">Descripción</th>
-              <th class="col-cant">Cantidad</th>
-              <th class="col-valor">Valor</th>
-              <th class="col-del"></th>
-            </tr>
-          </thead>
-          <tbody id="body-mano"></tbody>
-        </table>
-        <button type="button" class="btn-add" id="add-mano">+ Añadir fila</button>
-      </section>
-    </div>
+  <!-- Fila 2: Repuestos (izq) | Mano de Obra (der) -->
+  <div class="layout">
+    <section class="section-card repuestos">
+      <h2>
+        <span class="section-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </span>
+        Repuestos
+      </h2>
+      <table id="tabla-repuestos">
+        <thead>
+          <tr>
+            <th class="col-desc">Descripción</th>
+            <th class="col-cant">Cantidad</th>
+            <th class="col-valor">Valor</th>
+            <th class="col-del"></th>
+          </tr>
+        </thead>
+        <tbody id="body-repuestos"></tbody>
+      </table>
+      <button type="button" class="btn-add" id="add-repuesto">+ Añadir fila</button>
+    </section>
+
+    <section class="section-card mano">
+      <h2>
+        <span class="section-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        </span>
+        Mano de Obra
+      </h2>
+      <table id="tabla-mano">
+        <thead>
+          <tr>
+            <th class="col-desc">Descripción</th>
+            <th class="col-cant">Cantidad</th>
+            <th class="col-valor">Valor</th>
+            <th class="col-del"></th>
+          </tr>
+        </thead>
+        <tbody id="body-mano"></tbody>
+      </table>
+      <button type="button" class="btn-add" id="add-mano">+ Añadir fila</button>
+    </section>
   </div>
 
   <button type="button" class="btn-pdf" id="btn-pdf">Generar PDF</button>
@@ -314,45 +363,76 @@
     const btnPdf = document.getElementById('btn-pdf');
     const message = document.getElementById('message');
 
+    function formatMiles(val) {
+      var n = parseInt(String(val).replace(/\D/g, ''), 10);
+      if (isNaN(n)) return '';
+      return n.toLocaleString('es-CL');
+    }
+    function parseValor(str) {
+      var n = parseInt(String(str).replace(/\D/g, ''), 10);
+      return isNaN(n) ? 0 : n;
+    }
+
     function filaTabla() {
       const tr = document.createElement('tr');
       tr.innerHTML =
         '<td class="col-desc"><input type="text" name="desc" placeholder="Descripción"></td>' +
         '<td class="col-cant"><input type="number" name="cant" min="0" value="1" placeholder="0"></td>' +
-        '<td class="col-valor"><input type="number" name="valor" min="0" value="0" placeholder="0"></td>' +
+        '<td class="col-valor"><div class="col-valor-cell"><span class="valor-prefix">$</span><input type="text" name="valor" placeholder="0" data-raw="0"></div></td>' +
         '<td class="col-del"><button type="button" class="btn-row" title="Quitar fila">Quitar</button></td>';
-      tr.querySelector('.btn-row').addEventListener('click', () => tr.remove());
+      var valorInput = tr.querySelector('input[name="valor"]');
+      valorInput.addEventListener('input', function() {
+        var v = parseValor(this.value);
+        this.dataset.raw = v;
+        this.value = v === 0 ? '' : formatMiles(v);
+      });
+      valorInput.addEventListener('blur', function() {
+        var v = parseValor(this.value);
+        this.dataset.raw = v;
+        this.value = v === 0 ? '' : formatMiles(v);
+      });
+      tr.querySelector('.btn-row').addEventListener('click', function() { tr.remove(); });
       return tr;
     }
+
     function addFila(tbody) { tbody.appendChild(filaTabla()); }
-    addRepuesto.addEventListener('click', () => addFila(bodyRepuestos));
-    addMano.addEventListener('click', () => addFila(bodyMano));
-    bodyRepuestos.appendChild(filaTabla());
-    bodyMano.appendChild(filaTabla());
+    addRepuesto.addEventListener('click', function() { addFila(bodyRepuestos); });
+    addMano.addEventListener('click', function() { addFila(bodyMano); });
+
+    var row0Rep = filaTabla();
+    row0Rep.querySelector('input[name="valor"]').value = '0';
+    row0Rep.querySelector('input[name="valor"]').dataset.raw = '0';
+    bodyRepuestos.appendChild(row0Rep);
+    var row0Mano = filaTabla();
+    row0Mano.querySelector('input[name="valor"]').value = '';
+    row0Mano.querySelector('input[name="valor"]').dataset.raw = '0';
+    bodyMano.appendChild(row0Mano);
 
     function leerFilas(tbody) {
-      const items = [];
-      tbody.querySelectorAll('tr').forEach((tr) => {
-        const desc = tr.querySelector('input[name="desc"]').value.trim();
-        const cant = parseInt(tr.querySelector('input[name="cant"]').value, 10) || 0;
-        const valor = parseInt(tr.querySelector('input[name="valor"]').value, 10) || 0;
-        if (desc) items.push({ descripcion: desc, cantidad: cant, valor });
+      var items = [];
+      tbody.querySelectorAll('tr').forEach(function(tr) {
+        var desc = tr.querySelector('input[name="desc"]').value.trim();
+        var cant = parseInt(tr.querySelector('input[name="cant"]').value, 10) || 0;
+        var valorEl = tr.querySelector('input[name="valor"]');
+        var valor = valorEl && valorEl.dataset.raw !== undefined ? parseInt(valorEl.dataset.raw, 10) : parseValor(valorEl ? valorEl.value : '');
+        if (isNaN(valor)) valor = 0;
+        if (desc) items.push({ descripcion: desc, cantidad: cant, valor: valor });
       });
       return items;
     }
 
     function formatFechaParaPdf(isoDate) {
       if (!isoDate) return '';
-      const d = new Date(isoDate + 'T12:00:00');
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const year = d.getFullYear();
+      var d = new Date(isoDate + 'T12:00:00');
+      var day = String(d.getDate()).padStart(2, '0');
+      var month = String(d.getMonth() + 1).padStart(2, '0');
+      var year = d.getFullYear();
       return day + '/' + month + '/' + year;
     }
 
     function leerCliente() {
-      const fechaInput = document.getElementById('cliente-fecha');
-      const fechaValue = fechaInput.type === 'date' ? formatFechaParaPdf(fechaInput.value) : fechaInput.value.trim();
+      var fechaInput = document.getElementById('cliente-fecha');
+      var fechaValue = fechaInput.type === 'date' ? formatFechaParaPdf(fechaInput.value) : fechaInput.value.trim();
       return {
         nombre: document.getElementById('cliente-nombre').value.trim(),
         fecha: fechaValue,
@@ -363,8 +443,8 @@
       };
     }
     function leerVehiculo() {
-      const kmInput = document.getElementById('vehiculo-kilometraje');
-      const kilometraje = kmInput.type === 'number' ? String(kmInput.value).trim() : kmInput.value.trim();
+      var kmInput = document.getElementById('vehiculo-kilometraje');
+      var kilometraje = kmInput.type === 'number' ? String(kmInput.value).trim() : kmInput.value.trim();
       return {
         patente: document.getElementById('vehiculo-patente').value.trim(),
         ano: document.getElementById('vehiculo-ano').value.trim(),
@@ -383,37 +463,39 @@
 
     function logoToBase64() {
       return fetch(window.location.origin + '/logo.png')
-        .then((r) => r.blob())
-        .then((blob) => new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const dataUrl = reader.result;
-            const b64 = dataUrl.split(',')[1];
-            resolve(b64 || '');
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        }))
-        .catch(() => '');
+        .then(function(r) { return r.blob(); })
+        .then(function(blob) {
+          return new Promise(function(resolve, reject) {
+            var reader = new FileReader();
+            reader.onload = function() {
+              var dataUrl = reader.result;
+              var b64 = dataUrl.split(',')[1];
+              resolve(b64 || '');
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+        })
+        .catch(function() { return ''; });
     }
 
-    btnPdf.addEventListener('click', async () => {
+    btnPdf.addEventListener('click', async function() {
       message.innerHTML = '';
-      const repuestos = leerFilas(bodyRepuestos);
-      const manoDeObra = leerFilas(bodyMano);
+      var repuestos = leerFilas(bodyRepuestos);
+      var manoDeObra = leerFilas(bodyMano);
       if (repuestos.length === 0 && manoDeObra.length === 0) {
         showMessage('Añade al menos una fila en Repuestos o Mano de Obra.', true);
         return;
       }
       btnPdf.disabled = true;
       try {
-        const logo = await logoToBase64();
-        const res = await fetch(window.location.origin + '/.netlify/functions/generate-pdf', {
+        var logo = await logoToBase64();
+        var res = await fetch(window.location.origin + '/.netlify/functions/generate-pdf', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            repuestos,
-            manoDeObra,
+            repuestos: repuestos,
+            manoDeObra: manoDeObra,
             cliente: leerCliente(),
             vehiculo: leerVehiculo(),
             presupuestoNumero: document.getElementById('presupuesto-num').value.trim(),
@@ -421,12 +503,12 @@
           }),
         });
         if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
+          var err = await res.json().catch(function() { return {}; });
           throw new Error(err.error || err.detail || 'Error al generar el PDF');
         }
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        var blob = await res.blob();
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
         a.href = url;
         a.download = 'presupuesto.pdf';
         a.click();
