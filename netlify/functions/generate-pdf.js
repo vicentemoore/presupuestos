@@ -1,5 +1,4 @@
-const path = require('path');
-const { generatePresupuestoPdf } = require(path.join(__dirname, '../../src/generatePdf'));
+const { generatePresupuestoPdf } = require('./lib/generatePdf');
 
 /**
  * Convierte el payload de la web (repuestos/manoDeObra con descripcion, cantidad, valor)
