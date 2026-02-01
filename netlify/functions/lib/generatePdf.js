@@ -158,9 +158,9 @@ async function generatePresupuestoPdf(data, logoBuffer) {
 
   // --- Recuadro contacto (derecha); altura según cantidad de líneas ---
   const contactLines = [
-    'Joaquin Miranda T',
-    'Sanchez Fontecilla 4655',
-    'Puente Alto, Región Metropolitana',
+    'Joaquin Miranda',
+    "joaquinmirand22@hotmail.com",
+    'Sanchez Fontecilla 4655, Puente Alto',
     '+56 9 8136 7788',
     'COPIA CLIENTE',
   ];
