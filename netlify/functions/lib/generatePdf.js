@@ -170,11 +170,14 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   drawRect(page, contactoX, contactoY, CONTACTO_WIDTH, contactoHeight);
   let yContacto = height - MARGIN - CONTACTO_PAD - 12;
   contactLines.forEach((line) => {
+    const lineFont = line === 'COPIA CLIENTE' ? fontBold : font;
+    const textWidth = lineFont.widthOfTextAtSize(line, FONT_SIZE);
+    const xRight = contactoX + CONTACTO_WIDTH - CONTACTO_PAD - textWidth;
     page.drawText(line, {
-      x: contactoX + CONTACTO_PAD,
+      x: xRight,
       y: yContacto,
       size: FONT_SIZE,
-      font: line === 'COPIA CLIENTE' ? fontBold : font,
+      font: lineFont,
       color: black,
     });
     yContacto -= LINE_HEIGHT;
