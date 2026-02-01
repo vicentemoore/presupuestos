@@ -18,9 +18,9 @@ const BORDER_THICK = 1;
 const COL_VALOR_WIDTH = 95;
 const COL_DESC_WIDTH = CONTENT_WIDTH - COL_VALOR_WIDTH;
 
-// Logo (altura fija)
-const LOGO_HEIGHT = 52;
-const LOGO_WIDTH = 52;
+// Logo (altura fija, doble de tamaño)
+const LOGO_HEIGHT = 104;
+const LOGO_WIDTH = 104;
 
 // Bloque contacto (derecha)
 const CONTACTO_WIDTH = 185;
@@ -87,11 +87,12 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     } catch (_) {}
   }
 
-  // --- Presupuesto Nº (a la derecha del logo) ---
+  // --- Presupuesto N° y número en la misma línea (a la derecha del logo) ---
   const titleX = MARGIN + LOGO_WIDTH + 14;
   let y = height - MARGIN - 6;
   const presupuestoNumero = String(data.presupuestoNumero || '').trim();
-  page.drawText('Presupuesto Nº', {
+  const presupuestoLine = presupuestoNumero ? 'Presupuesto N° ' + presupuestoNumero : 'Presupuesto N°';
+  page.drawText(presupuestoLine, {
     x: titleX,
     y,
     size: FONT_SIZE_TITLE,
@@ -99,16 +100,6 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     color: black,
   });
   y -= LINE_HEIGHT;
-  if (presupuestoNumero) {
-    page.drawText(presupuestoNumero, {
-      x: titleX,
-      y,
-      size: FONT_SIZE,
-      font: fontBold,
-      color: black,
-    });
-    y -= LINE_HEIGHT;
-  }
 
   // --- Recuadro contacto (derecha) ---
   const contactoHeight = 7 * LINE_HEIGHT + CONTACTO_PAD * 2;
@@ -136,13 +127,15 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     yContacto -= LINE_HEIGHT;
   });
 
-  // Línea bajo encabezado
+  // Sin línea suelta; empieza recuadro Datos del Cliente
   y = contactoY - 12;
-  drawLine(page, MARGIN, y, PAGE_WIDTH - MARGIN, y);
   y -= LINE_HEIGHT + 4;
 
-  // --- Recuadro Datos del Cliente ---
-  const clienteBoxHeight = LINE_HEIGHT + 8 + 3 * LINE_HEIGHT + 10;
+  // --- Recuadro Datos del Cliente (valores más cerca de labels; Email abajo) ---
+  const labelWidth = 52;
+  const clienteValueX = MARGIN + 6 + labelWidth;
+  const col2X = MARGIN + CONTENT_WIDTH * 0.5;
+  const clienteBoxHeight = LINE_HEIGHT + 8 + 3 * LINE_HEIGHT + LINE_HEIGHT + 10; // 3 filas + Email
   const clienteBoxY = y - clienteBoxHeight;
   drawRect(page, MARGIN, clienteBoxY, CONTENT_WIDTH, clienteBoxHeight);
   page.drawText('Datos del Cliente', {
@@ -154,24 +147,22 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   });
   y -= LINE_HEIGHT + 12;
   const c = data.cliente || {};
-  const clienteLeft = [
-    { label: 'Nombre', value: c.nombre || '' },
-    { label: 'Rut', value: c.rut || '' },
-    { label: 'Dirección', value: c.direccion || '' },
-  ];
-  const clienteRight = [
-    { label: 'Fecha', value: c.fecha || '' },
-    { label: 'Fono', value: c.fono || '' },
-    { label: 'Email', value: c.email || '' },
-  ];
-  const col2X = MARGIN + CONTENT_WIDTH * 0.5;
-  for (let i = 0; i < 3; i++) {
-    page.drawText(clienteLeft[i].label, { x: MARGIN + 6, y, size: FONT_SIZE, font: fontBold, color: black });
-    page.drawText(clienteLeft[i].value, { x: MARGIN + 82, y, size: FONT_SIZE, font, color: black });
-    page.drawText(clienteRight[i].label, { x: col2X + 6, y, size: FONT_SIZE, font: fontBold, color: black });
-    page.drawText(clienteRight[i].value, { x: col2X + 52, y, size: FONT_SIZE, font, color: black });
-    y -= LINE_HEIGHT;
-  }
+  // Filas: Nombre/Fecha, Rut/Fono, Dirección (solo izq), Email (abajo)
+  page.drawText('Nombre', { x: MARGIN + 6, y, size: FONT_SIZE, font: fontBold, color: black });
+  page.drawText(c.nombre || '', { x: clienteValueX, y, size: FONT_SIZE, font, color: black });
+  page.drawText('Fecha', { x: col2X + 6, y, size: FONT_SIZE, font: fontBold, color: black });
+  page.drawText(c.fecha || '', { x: col2X + 38, y, size: FONT_SIZE, font, color: black });
+  y -= LINE_HEIGHT;
+  page.drawText('Rut', { x: MARGIN + 6, y, size: FONT_SIZE, font: fontBold, color: black });
+  page.drawText(c.rut || '', { x: clienteValueX, y, size: FONT_SIZE, font, color: black });
+  page.drawText('Fono', { x: col2X + 6, y, size: FONT_SIZE, font: fontBold, color: black });
+  page.drawText(c.fono || '', { x: col2X + 38, y, size: FONT_SIZE, font, color: black });
+  y -= LINE_HEIGHT;
+  page.drawText('Dirección', { x: MARGIN + 6, y, size: FONT_SIZE, font: fontBold, color: black });
+  page.drawText(truncateToWidth(c.direccion || '', 55), { x: clienteValueX, y, size: FONT_SIZE, font, color: black });
+  y -= LINE_HEIGHT;
+  page.drawText('Email', { x: MARGIN + 6, y, size: FONT_SIZE, font: fontBold, color: black });
+  page.drawText(c.email || '', { x: clienteValueX, y, size: FONT_SIZE, font, color: black });
   y -= 14;
 
   // --- Recuadro Datos del Vehículo ---
@@ -208,7 +199,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   }
   y -= 14;
 
-  // --- Tabla: encabezado con recuadro (Descripción | Valor Total) ---
+  // --- Tabla: encabezado (Descripción | Valor Total); espacio claro antes de Repuestos ---
   drawRect(page, MARGIN, y - ROW_HEIGHT, CONTENT_WIDTH, ROW_HEIGHT);
   drawLine(page, MARGIN + COL_DESC_WIDTH, y, MARGIN + COL_DESC_WIDTH, y - ROW_HEIGHT);
   page.drawText('Descripción', {
@@ -225,9 +216,9 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     font: fontBold,
     color: black,
   });
-  y -= ROW_HEIGHT + 6;
+  y -= ROW_HEIGHT + 14;
 
-  // Repuestos
+  // Repuestos (bien separado del encabezado)
   page.drawText('Repuestos', {
     x: MARGIN,
     y,
@@ -273,9 +264,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   }
   y -= 6;
 
-  // Línea sobre Total y fila Total con borde inferior más grueso
-  drawLine(page, MARGIN, y, MARGIN + CONTENT_WIDTH, y);
-  y -= ROW_HEIGHT;
+  // Fila Total con borde más grueso (sin línea suelta encima)
   drawRect(page, MARGIN, y - ROW_HEIGHT, CONTENT_WIDTH, ROW_HEIGHT, BORDER_THICK);
   drawLine(page, MARGIN + COL_DESC_WIDTH, y, MARGIN + COL_DESC_WIDTH, y - ROW_HEIGHT, BORDER_THICK);
   page.drawText('Total', {

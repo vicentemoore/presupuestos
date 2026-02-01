@@ -15,8 +15,8 @@ const BORDER = 0.5;
 const BORDER_THICK = 1;
 const COL_VALOR_WIDTH = 95;
 const COL_DESC_WIDTH = CONTENT_WIDTH - COL_VALOR_WIDTH;
-const LOGO_HEIGHT = 52;
-const LOGO_WIDTH = 52;
+const LOGO_HEIGHT = 104;
+const LOGO_WIDTH = 104;
 const CONTACTO_WIDTH = 185;
 const CONTACTO_PAD = 8;
 const black = rgb(0, 0, 0);
@@ -66,12 +66,9 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   const titleX = MARGIN + LOGO_WIDTH + 14;
   let y = height - MARGIN - 6;
   const presupuestoNumero = String((data && data.presupuestoNumero) || '').trim();
-  page.drawText('Presupuesto Nº', { x: titleX, y, size: FONT_SIZE_TITLE, font: fontBold, color: black });
+  const presupuestoLine = presupuestoNumero ? 'Presupuesto N° ' + presupuestoNumero : 'Presupuesto N°';
+  page.drawText(presupuestoLine, { x: titleX, y, size: FONT_SIZE_TITLE, font: fontBold, color: black });
   y -= LINE_HEIGHT;
-  if (presupuestoNumero) {
-    page.drawText(presupuestoNumero, { x: titleX, y, size: FONT_SIZE, font: fontBold, color: black });
-    y -= LINE_HEIGHT;
-  }
 
   const contactoHeight = 7 * LINE_HEIGHT + CONTACTO_PAD * 2;
   const contactoX = PAGE_WIDTH - MARGIN - CONTACTO_WIDTH;
@@ -85,24 +82,30 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   });
 
   y = contactoY - 12;
-  drawLine(page, MARGIN, y, PAGE_WIDTH - MARGIN, y);
   y -= LINE_HEIGHT + 4;
-
-  const clienteBoxHeight = LINE_HEIGHT + 8 + 3 * LINE_HEIGHT + 10;
+  const labelWidth = 52;
+  const clienteValueX = MARGIN + 6 + labelWidth;
+  const col2X = MARGIN + CONTENT_WIDTH * 0.5;
+  const clienteBoxHeight = LINE_HEIGHT + 8 + 4 * LINE_HEIGHT + 10;
   drawRect(page, MARGIN, y - clienteBoxHeight, CONTENT_WIDTH, clienteBoxHeight);
   page.drawText('Datos del Cliente', { x: MARGIN + 6, y: y - 14, size: FONT_SIZE_SECTION, font: fontBold, color: black });
   y -= LINE_HEIGHT + 12;
-  const c = data.cliente || {};
-  const clienteLeft = [{ label: 'Nombre', value: c.nombre || '' }, { label: 'Rut', value: c.rut || '' }, { label: 'Dirección', value: c.direccion || '' }];
-  const clienteRight = [{ label: 'Fecha', value: c.fecha || '' }, { label: 'Fono', value: c.fono || '' }, { label: 'Email', value: c.email || '' }];
-  const col2X = MARGIN + CONTENT_WIDTH * 0.5;
-  for (let i = 0; i < 3; i++) {
-    page.drawText(clienteLeft[i].label, { x: MARGIN + 6, y, size: FONT_SIZE, font: fontBold, color: black });
-    page.drawText(clienteLeft[i].value, { x: MARGIN + 82, y, size: FONT_SIZE, font, color: black });
-    page.drawText(clienteRight[i].label, { x: col2X + 6, y, size: FONT_SIZE, font: fontBold, color: black });
-    page.drawText(clienteRight[i].value, { x: col2X + 52, y, size: FONT_SIZE, font, color: black });
-    y -= LINE_HEIGHT;
-  }
+  const c = (data && data.cliente) || {};
+  page.drawText('Nombre', { x: MARGIN + 6, y, size: FONT_SIZE, font: fontBold, color: black });
+  page.drawText(c.nombre || '', { x: clienteValueX, y, size: FONT_SIZE, font, color: black });
+  page.drawText('Fecha', { x: col2X + 6, y, size: FONT_SIZE, font: fontBold, color: black });
+  page.drawText(c.fecha || '', { x: col2X + 38, y, size: FONT_SIZE, font, color: black });
+  y -= LINE_HEIGHT;
+  page.drawText('Rut', { x: MARGIN + 6, y, size: FONT_SIZE, font: fontBold, color: black });
+  page.drawText(c.rut || '', { x: clienteValueX, y, size: FONT_SIZE, font, color: black });
+  page.drawText('Fono', { x: col2X + 6, y, size: FONT_SIZE, font: fontBold, color: black });
+  page.drawText(c.fono || '', { x: col2X + 38, y, size: FONT_SIZE, font, color: black });
+  y -= LINE_HEIGHT;
+  page.drawText('Dirección', { x: MARGIN + 6, y, size: FONT_SIZE, font: fontBold, color: black });
+  page.drawText((c.direccion || '').slice(0, 55), { x: clienteValueX, y, size: FONT_SIZE, font, color: black });
+  y -= LINE_HEIGHT;
+  page.drawText('Email', { x: MARGIN + 6, y, size: FONT_SIZE, font: fontBold, color: black });
+  page.drawText(c.email || '', { x: clienteValueX, y, size: FONT_SIZE, font, color: black });
   y -= 14;
 
   const vehiculoBoxHeight = LINE_HEIGHT + 8 + 4 * LINE_HEIGHT + 10;
@@ -125,7 +128,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   drawLine(page, MARGIN + COL_DESC_WIDTH, y, MARGIN + COL_DESC_WIDTH, y - ROW_HEIGHT);
   page.drawText('Descripción', { x: MARGIN + 6, y: y - 13, size: FONT_SIZE, font: fontBold, color: black });
   page.drawText('Valor Total', { x: MARGIN + COL_DESC_WIDTH + 6, y: y - 13, size: FONT_SIZE, font: fontBold, color: black });
-  y -= ROW_HEIGHT + 6;
+  y -= ROW_HEIGHT + 14;
 
   page.drawText('Repuestos', { x: MARGIN, y, size: FONT_SIZE_SECTION, font: fontBold, color: black });
   y -= ROW_HEIGHT;
@@ -143,8 +146,6 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     y -= ROW_HEIGHT;
   }
   y -= 6;
-  drawLine(page, MARGIN, y, MARGIN + CONTENT_WIDTH, y);
-  y -= ROW_HEIGHT;
   drawRect(page, MARGIN, y - ROW_HEIGHT, CONTENT_WIDTH, ROW_HEIGHT, BORDER_THICK);
   drawLine(page, MARGIN + COL_DESC_WIDTH, y, MARGIN + COL_DESC_WIDTH, y - ROW_HEIGHT, BORDER_THICK);
   page.drawText('Total', { x: MARGIN + 6, y: y - 13, size: FONT_SIZE, font: fontBold, color: black });

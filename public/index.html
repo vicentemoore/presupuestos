@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="logo.png" type="image/png">
   <title>Presupuestos</title>
   <style>
     * { box-sizing: border-box; }
@@ -132,10 +133,12 @@
       text-align: right;
       min-width: 0;
     }
-    .col-desc { width: 50%; }
-    .col-cant { width: 15%; }
-    .col-valor { width: 20%; }
-    .col-del { width: 15%; }
+    .col-desc { width: 40%; }
+    .col-cant { width: 12%; }
+    .col-valor { width: 18%; }
+    .col-total { width: 18%; text-align: right; }
+    .col-del { width: 12%; }
+    .col-total-cell { text-align: right; font-weight: 500; color: #334155; }
     .btn-row {
       padding: 0.3rem 0.6rem;
       font-size: 0.8rem;
@@ -307,50 +310,50 @@
     </section>
   </div>
 
-  <!-- Fila 2: Repuestos (izq) | Mano de Obra (der) -->
-  <div class="layout">
-    <section class="section-card repuestos">
-      <h2>
-        <span class="section-icon" aria-hidden="true">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-        </span>
-        Repuestos
-      </h2>
-      <table id="tabla-repuestos">
-        <thead>
-          <tr>
-            <th class="col-desc">Descripción</th>
-            <th class="col-cant">Cantidad</th>
-            <th class="col-valor">Valor</th>
-            <th class="col-del"></th>
-          </tr>
-        </thead>
-        <tbody id="body-repuestos"></tbody>
-      </table>
-      <button type="button" class="btn-add" id="add-repuesto">+ Añadir fila</button>
-    </section>
+  <!-- Tablas una arriba de la otra -->
+  <section class="section-card repuestos">
+    <h2>
+      <span class="section-icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      </span>
+      Repuestos
+    </h2>
+    <table id="tabla-repuestos">
+      <thead>
+        <tr>
+          <th class="col-desc">Descripción</th>
+          <th class="col-cant">Cantidad</th>
+          <th class="col-valor">Valor</th>
+          <th class="col-total">Total</th>
+          <th class="col-del"></th>
+        </tr>
+      </thead>
+      <tbody id="body-repuestos"></tbody>
+    </table>
+    <button type="button" class="btn-add" id="add-repuesto">+ Añadir fila</button>
+  </section>
 
-    <section class="section-card mano">
-      <h2>
-        <span class="section-icon" aria-hidden="true">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-        </span>
-        Mano de Obra
-      </h2>
-      <table id="tabla-mano">
-        <thead>
-          <tr>
-            <th class="col-desc">Descripción</th>
-            <th class="col-cant">Cantidad</th>
-            <th class="col-valor">Valor</th>
-            <th class="col-del"></th>
-          </tr>
-        </thead>
-        <tbody id="body-mano"></tbody>
-      </table>
-      <button type="button" class="btn-add" id="add-mano">+ Añadir fila</button>
-    </section>
-  </div>
+  <section class="section-card mano">
+    <h2>
+      <span class="section-icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      </span>
+      Mano de Obra
+    </h2>
+    <table id="tabla-mano">
+      <thead>
+        <tr>
+          <th class="col-desc">Descripción</th>
+          <th class="col-cant">Cantidad</th>
+          <th class="col-valor">Valor</th>
+          <th class="col-total">Total</th>
+          <th class="col-del"></th>
+        </tr>
+      </thead>
+      <tbody id="body-mano"></tbody>
+    </table>
+    <button type="button" class="btn-add" id="add-mano">+ Añadir fila</button>
+  </section>
 
   <button type="button" class="btn-pdf" id="btn-pdf">Generar PDF</button>
   <div id="message" class="message-wrap"></div>
@@ -373,25 +376,42 @@
       return isNaN(n) ? 0 : n;
     }
 
+    function actualizarTotalFila(tr) {
+      var cant = parseInt(tr.querySelector('input[name="cant"]').value, 10) || 0;
+      var valorEl = tr.querySelector('input[name="valor"]');
+      var valorUnit = valorEl && valorEl.dataset.raw !== undefined ? parseInt(valorEl.dataset.raw, 10) : parseValor(valorEl ? valorEl.value : '');
+      if (isNaN(valorUnit)) valorUnit = 0;
+      var total = cant * valorUnit;
+      var totalCell = tr.querySelector('.col-total-cell');
+      if (totalCell) totalCell.textContent = total === 0 ? '' : '$ ' + formatMiles(total);
+    }
+
     function filaTabla() {
-      const tr = document.createElement('tr');
+      var tr = document.createElement('tr');
       tr.innerHTML =
         '<td class="col-desc"><input type="text" name="desc" placeholder="Descripción"></td>' +
         '<td class="col-cant"><input type="number" name="cant" min="0" value="1" placeholder="0"></td>' +
         '<td class="col-valor"><div class="col-valor-cell"><span class="valor-prefix">$</span><input type="text" name="valor" placeholder="0" data-raw="0"></div></td>' +
+        '<td class="col-total-cell" tabindex="-1" aria-readonly="true"></td>' +
         '<td class="col-del"><button type="button" class="btn-row" title="Quitar fila">Quitar</button></td>';
+      var cantInput = tr.querySelector('input[name="cant"]');
       var valorInput = tr.querySelector('input[name="valor"]');
       valorInput.addEventListener('input', function() {
         var v = parseValor(this.value);
         this.dataset.raw = v;
         this.value = v === 0 ? '' : formatMiles(v);
+        actualizarTotalFila(tr);
       });
       valorInput.addEventListener('blur', function() {
         var v = parseValor(this.value);
         this.dataset.raw = v;
         this.value = v === 0 ? '' : formatMiles(v);
+        actualizarTotalFila(tr);
       });
+      cantInput.addEventListener('input', function() { actualizarTotalFila(tr); });
+      cantInput.addEventListener('change', function() { actualizarTotalFila(tr); });
       tr.querySelector('.btn-row').addEventListener('click', function() { tr.remove(); });
+      actualizarTotalFila(tr);
       return tr;
     }
 
@@ -400,12 +420,14 @@
     addMano.addEventListener('click', function() { addFila(bodyMano); });
 
     var row0Rep = filaTabla();
-    row0Rep.querySelector('input[name="valor"]').value = '0';
+    row0Rep.querySelector('input[name="valor"]').value = '';
     row0Rep.querySelector('input[name="valor"]').dataset.raw = '0';
+    actualizarTotalFila(row0Rep);
     bodyRepuestos.appendChild(row0Rep);
     var row0Mano = filaTabla();
     row0Mano.querySelector('input[name="valor"]').value = '';
     row0Mano.querySelector('input[name="valor"]').dataset.raw = '0';
+    actualizarTotalFila(row0Mano);
     bodyMano.appendChild(row0Mano);
 
     function leerFilas(tbody) {
@@ -414,9 +436,10 @@
         var desc = tr.querySelector('input[name="desc"]').value.trim();
         var cant = parseInt(tr.querySelector('input[name="cant"]').value, 10) || 0;
         var valorEl = tr.querySelector('input[name="valor"]');
-        var valor = valorEl && valorEl.dataset.raw !== undefined ? parseInt(valorEl.dataset.raw, 10) : parseValor(valorEl ? valorEl.value : '');
-        if (isNaN(valor)) valor = 0;
-        if (desc) items.push({ descripcion: desc, cantidad: cant, valor: valor });
+        var valorUnit = valorEl && valorEl.dataset.raw !== undefined ? parseInt(valorEl.dataset.raw, 10) : parseValor(valorEl ? valorEl.value : '');
+        if (isNaN(valorUnit)) valorUnit = 0;
+        var valorTotal = cant * valorUnit;
+        if (desc) items.push({ descripcion: desc, cantidad: cant, valor: valorTotal });
       });
       return items;
     }
