@@ -65,9 +65,13 @@ async function generatePresupuestoPdf(data, logoBuffer) {
 
   const titleX = MARGIN + LOGO_WIDTH + 14;
   let y = height - MARGIN - 6;
-  page.drawText('Orden de Trabajo GPARTS', { x: titleX, y, size: FONT_SIZE_TITLE, font: fontBold, color: black });
+  const presupuestoNumero = String((data && data.presupuestoNumero) || '').trim();
+  page.drawText('Presupuesto Nº', { x: titleX, y, size: FONT_SIZE_TITLE, font: fontBold, color: black });
   y -= LINE_HEIGHT;
-  page.drawText('0000001855', { x: titleX, y, size: FONT_SIZE, font: fontBold, color: black });
+  if (presupuestoNumero) {
+    page.drawText(presupuestoNumero, { x: titleX, y, size: FONT_SIZE, font: fontBold, color: black });
+    y -= LINE_HEIGHT;
+  }
 
   const contactoHeight = 7 * LINE_HEIGHT + CONTACTO_PAD * 2;
   const contactoX = PAGE_WIDTH - MARGIN - CONTACTO_WIDTH;

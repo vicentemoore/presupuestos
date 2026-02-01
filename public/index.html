@@ -7,159 +7,304 @@
   <style>
     * { box-sizing: border-box; }
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      max-width: 720px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-      color: #1a1a1a;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 1.5rem 1.5rem 3rem;
+      color: #1e293b;
+      background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%);
+      min-height: 100vh;
     }
-    h1 { font-size: 1.5rem; margin-bottom: 1.5rem; }
-    section { margin-bottom: 2rem; }
-    section h2 { font-size: 1.1rem; margin-bottom: 0.75rem; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1rem; margin-bottom: 1rem; }
-    .form-grid label { display: block; font-weight: 500; margin-bottom: 0.25rem; }
-    .form-grid input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 768px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+    .section-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #3b82f6;
+    }
+    .section-card.vehiculo { border-left-color: #0ea5e9; }
+    .section-card.repuestos { border-left-color: #22c55e; }
+    .section-card.mano { border-left-color: #f59e0b; }
+    .section-card h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 0 0 1rem 0;
+      color: #334155;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem 1rem;
+    }
+    .form-grid label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.3rem;
+      font-size: 0.875rem;
+      color: #475569;
+    }
+    .form-grid input {
+      width: 100%;
+      padding: 0.55rem 0.65rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-grid input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+    .form-grid input[type="number"] { text-align: right; }
     .form-grid .full { grid-column: 1 / -1; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
     th, td {
-      padding: 0.5rem;
-      border: 1px solid #ccc;
+      padding: 0.5rem 0.6rem;
+      border: 1px solid #e2e8f0;
       text-align: left;
     }
-    th { background: #f5f5f5; font-weight: 600; }
-    td input { width: 100%; padding: 0.4rem; border: 1px solid #ddd; border-radius: 4px; }
+    th {
+      background: #f8fafc;
+      font-weight: 600;
+      color: #475569;
+    }
+    td input {
+      width: 100%;
+      padding: 0.45rem 0.5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 5px;
+      font-size: 0.875rem;
+    }
+    td input:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
     td input[type="number"] { text-align: right; }
     .col-desc { width: 50%; }
     .col-cant { width: 15%; }
     .col-valor { width: 20%; }
     .col-del { width: 15%; }
-    .btn-row { padding: 0.25rem 0.5rem; font-size: 0.85rem; cursor: pointer; background: #ef4444; color: #fff; border: none; border-radius: 4px; }
+    .btn-row {
+      padding: 0.3rem 0.6rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+    }
     .btn-row:hover { background: #dc2626; }
-    .btn-add { padding: 0.5rem 1rem; font-size: 0.9rem; cursor: pointer; background: #22c55e; color: #fff; border: none; border-radius: 6px; margin-bottom: 1rem; }
+    .btn-add {
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+      background: #22c55e;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      margin-top: 0.25rem;
+    }
     .btn-add:hover { background: #16a34a; }
     .btn-pdf {
       width: 100%;
-      margin-top: 1rem;
-      padding: 0.75rem 1rem;
+      max-width: 1000px;
+      margin: 1.5rem auto 0;
+      padding: 0.85rem 1.25rem;
       font-size: 1rem;
       font-weight: 600;
       color: #fff;
-      background: #2563eb;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
     }
-    .btn-pdf:hover { background: #1d4ed8; }
+    .btn-pdf:hover {
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+      box-shadow: 0 4px 8px rgba(37, 99, 235, 0.35);
+    }
     .btn-pdf:disabled { opacity: 0.6; cursor: not-allowed; }
-    .error { margin-top: 1rem; padding: 0.75rem; background: #fef2f2; color: #b91c1c; border-radius: 8px; font-size: 0.9rem; }
-    .success { margin-top: 1rem; padding: 0.75rem; background: #f0fdf4; color: #166534; border-radius: 8px; font-size: 0.9rem; }
+    .message-wrap { margin-top: 1rem; }
+    .error {
+      padding: 0.75rem 1rem;
+      background: #fef2f2;
+      color: #b91c1c;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      border: 1px solid #fecaca;
+    }
+    .success {
+      padding: 0.75rem 1rem;
+      background: #f0fdf4;
+      color: #166534;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      border: 1px solid #bbf7d0;
+    }
+    .presupuesto-num-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .presupuesto-num-wrap label {
+      font-weight: 600;
+      color: #334155;
+      white-space: nowrap;
+    }
+    .presupuesto-num-wrap input {
+      max-width: 12rem;
+      padding: 0.55rem 0.65rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    .presupuesto-num-wrap input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
   </style>
 </head>
 <body>
   <h1>Presupuestos</h1>
 
-  <section>
-    <h2>Datos del Cliente</h2>
-    <div class="form-grid">
-      <div>
-        <label for="cliente-nombre">Nombre</label>
-        <input type="text" id="cliente-nombre" value="LICORES.CL SPA" placeholder="Ej. LICORES.CL SPA">
-      </div>
-      <div>
-        <label for="cliente-fecha">Fecha</label>
-        <input type="text" id="cliente-fecha" value="17/03/2023" placeholder="Ej. 17/03/2023">
-      </div>
-      <div>
-        <label for="cliente-rut">Rut</label>
-        <input type="text" id="cliente-rut" value="76563323-0" placeholder="Ej. 76563323-0">
-      </div>
-      <div>
-        <label for="cliente-fono">Fono</label>
-        <input type="text" id="cliente-fono" value="+56 9 8259-6903" placeholder="Ej. +56 9 8259-6903">
-      </div>
-      <div class="full">
-        <label for="cliente-direccion">Dirección</label>
-        <input type="text" id="cliente-direccion" value="SALOMON SUMAR 3420, J-1. San Joaquín" placeholder="Ej. SALOMON SUMAR 3420, J-1. San Joaquín">
-      </div>
-      <div>
-        <label for="cliente-email">Email</label>
-        <input type="text" id="cliente-email" value="xxxx@xxx" placeholder="Ej. xxxx@xxx">
-      </div>
+  <div class="presupuesto-num-wrap">
+    <label for="presupuesto-num">Presupuesto Nº</label>
+    <input type="text" id="presupuesto-num" value="" placeholder="Ej. 0000001855">
+  </div>
+
+  <div class="layout">
+    <div>
+      <section class="section-card">
+        <h2>Datos del Cliente</h2>
+        <div class="form-grid">
+          <div>
+            <label for="cliente-nombre">Nombre</label>
+            <input type="text" id="cliente-nombre" value="LICORES.CL SPA" placeholder="Ej. LICORES.CL SPA">
+          </div>
+          <div>
+            <label for="cliente-fecha">Fecha</label>
+            <input type="date" id="cliente-fecha" value="2023-03-17">
+          </div>
+          <div>
+            <label for="cliente-rut">Rut</label>
+            <input type="text" id="cliente-rut" value="76563323-0" placeholder="Ej. 76563323-0">
+          </div>
+          <div>
+            <label for="cliente-fono">Fono</label>
+            <input type="text" id="cliente-fono" value="+56 9 8259-6903" placeholder="Ej. +56 9 8259-6903">
+          </div>
+          <div class="full">
+            <label for="cliente-direccion">Dirección</label>
+            <input type="text" id="cliente-direccion" value="SALOMON SUMAR 3420, J-1. San Joaquín" placeholder="Ej. SALOMON SUMAR 3420, J-1. San Joaquín">
+          </div>
+          <div>
+            <label for="cliente-email">Email</label>
+            <input type="text" id="cliente-email" value="xxxx@xxx" placeholder="Ej. xxxx@xxx">
+          </div>
+        </div>
+      </section>
+
+      <section class="section-card vehiculo">
+        <h2>Datos del Vehículo</h2>
+        <div class="form-grid">
+          <div>
+            <label for="vehiculo-patente">Patente</label>
+            <input type="text" id="vehiculo-patente" value="JDZC-59" placeholder="Ej. JDZC-59">
+          </div>
+          <div>
+            <label for="vehiculo-ano">Año</label>
+            <input type="text" id="vehiculo-ano" value="2017" placeholder="Ej. 2017">
+          </div>
+          <div>
+            <label for="vehiculo-marca">Marca</label>
+            <input type="text" id="vehiculo-marca" value="HYUNDAI" placeholder="Ej. HYUNDAI">
+          </div>
+          <div>
+            <label for="vehiculo-modelo">Modelo</label>
+            <input type="text" id="vehiculo-modelo" value="H1 Fg Crdi Gl 2.5" placeholder="Ej. H1 Fg Crdi Gl 2.5">
+          </div>
+          <div>
+            <label for="vehiculo-kilometraje">Kilometraje</label>
+            <input type="number" id="vehiculo-kilometraje" value="120563" min="0" step="1" placeholder="Ej. 120563">
+          </div>
+          <div>
+            <label for="vehiculo-vin">VIN</label>
+            <input type="text" id="vehiculo-vin" value="KMFWBX7KAGU806376" placeholder="Ej. KMFWBX7KAGU806376">
+          </div>
+          <div>
+            <label for="vehiculo-combustible">Combustible</label>
+            <input type="text" id="vehiculo-combustible" value="Diesel" placeholder="Ej. Diesel">
+          </div>
+          <div>
+            <label for="vehiculo-color">Color</label>
+            <input type="text" id="vehiculo-color" value="BLANCO" placeholder="Ej. BLANCO">
+          </div>
+        </div>
+      </section>
     </div>
-  </section>
 
-  <section>
-    <h2>Datos del Vehículo</h2>
-    <div class="form-grid">
-      <div>
-        <label for="vehiculo-patente">Patente</label>
-        <input type="text" id="vehiculo-patente" value="JDZC-59" placeholder="Ej. JDZC-59">
-      </div>
-      <div>
-        <label for="vehiculo-ano">Año</label>
-        <input type="text" id="vehiculo-ano" value="2017" placeholder="Ej. 2017">
-      </div>
-      <div>
-        <label for="vehiculo-marca">Marca</label>
-        <input type="text" id="vehiculo-marca" value="HYUNDAI" placeholder="Ej. HYUNDAI">
-      </div>
-      <div>
-        <label for="vehiculo-modelo">Modelo</label>
-        <input type="text" id="vehiculo-modelo" value="H1 Fg Crdi Gl 2.5" placeholder="Ej. H1 Fg Crdi Gl 2.5">
-      </div>
-      <div>
-        <label for="vehiculo-kilometraje">Kilometraje</label>
-        <input type="text" id="vehiculo-kilometraje" value="120.563" placeholder="Ej. 120.563">
-      </div>
-      <div>
-        <label for="vehiculo-vin">VIN</label>
-        <input type="text" id="vehiculo-vin" value="KMFWBX7KAGU806376" placeholder="Ej. KMFWBX7KAGU806376">
-      </div>
-      <div>
-        <label for="vehiculo-combustible">Combustible</label>
-        <input type="text" id="vehiculo-combustible" value="Diesel" placeholder="Ej. Diesel">
-      </div>
-      <div>
-        <label for="vehiculo-color">Color</label>
-        <input type="text" id="vehiculo-color" value="BLANCO" placeholder="Ej. BLANCO">
-      </div>
+    <div>
+      <section class="section-card repuestos">
+        <h2>Repuestos</h2>
+        <table id="tabla-repuestos">
+          <thead>
+            <tr>
+              <th class="col-desc">Descripción</th>
+              <th class="col-cant">Cantidad</th>
+              <th class="col-valor">Valor</th>
+              <th class="col-del"></th>
+            </tr>
+          </thead>
+          <tbody id="body-repuestos"></tbody>
+        </table>
+        <button type="button" class="btn-add" id="add-repuesto">+ Añadir fila</button>
+      </section>
+
+      <section class="section-card mano">
+        <h2>Mano de Obra</h2>
+        <table id="tabla-mano">
+          <thead>
+            <tr>
+              <th class="col-desc">Descripción</th>
+              <th class="col-cant">Cantidad</th>
+              <th class="col-valor">Valor</th>
+              <th class="col-del"></th>
+            </tr>
+          </thead>
+          <tbody id="body-mano"></tbody>
+        </table>
+        <button type="button" class="btn-add" id="add-mano">+ Añadir fila</button>
+      </section>
     </div>
-  </section>
-
-  <section>
-    <h2>Repuestos</h2>
-    <table id="tabla-repuestos">
-      <thead>
-        <tr>
-          <th class="col-desc">Descripción</th>
-          <th class="col-cant">Cantidad</th>
-          <th class="col-valor">Valor</th>
-          <th class="col-del"></th>
-        </tr>
-      </thead>
-      <tbody id="body-repuestos"></tbody>
-    </table>
-    <button type="button" class="btn-add" id="add-repuesto">+ Añadir fila</button>
-  </section>
-
-  <section>
-    <h2>Mano de Obra</h2>
-    <table id="tabla-mano">
-      <thead>
-        <tr>
-          <th class="col-desc">Descripción</th>
-          <th class="col-cant">Cantidad</th>
-          <th class="col-valor">Valor</th>
-          <th class="col-del"></th>
-        </tr>
-      </thead>
-      <tbody id="body-mano"></tbody>
-    </table>
-    <button type="button" class="btn-add" id="add-mano">+ Añadir fila</button>
-  </section>
+  </div>
 
   <button type="button" class="btn-pdf" id="btn-pdf">Generar PDF</button>
-  <div id="message"></div>
+  <div id="message" class="message-wrap"></div>
 
   <script>
     const bodyRepuestos = document.getElementById('body-repuestos');
@@ -196,10 +341,21 @@
       return items;
     }
 
+    function formatFechaParaPdf(isoDate) {
+      if (!isoDate) return '';
+      const d = new Date(isoDate + 'T12:00:00');
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      return day + '/' + month + '/' + year;
+    }
+
     function leerCliente() {
+      const fechaInput = document.getElementById('cliente-fecha');
+      const fechaValue = fechaInput.type === 'date' ? formatFechaParaPdf(fechaInput.value) : fechaInput.value.trim();
       return {
         nombre: document.getElementById('cliente-nombre').value.trim(),
-        fecha: document.getElementById('cliente-fecha').value.trim(),
+        fecha: fechaValue,
         rut: document.getElementById('cliente-rut').value.trim(),
         fono: document.getElementById('cliente-fono').value.trim(),
         direccion: document.getElementById('cliente-direccion').value.trim(),
@@ -207,12 +363,14 @@
       };
     }
     function leerVehiculo() {
+      const kmInput = document.getElementById('vehiculo-kilometraje');
+      const kilometraje = kmInput.type === 'number' ? String(kmInput.value).trim() : kmInput.value.trim();
       return {
         patente: document.getElementById('vehiculo-patente').value.trim(),
         ano: document.getElementById('vehiculo-ano').value.trim(),
         marca: document.getElementById('vehiculo-marca').value.trim(),
         modelo: document.getElementById('vehiculo-modelo').value.trim(),
-        kilometraje: document.getElementById('vehiculo-kilometraje').value.trim(),
+        kilometraje: kilometraje,
         vin: document.getElementById('vehiculo-vin').value.trim(),
         combustible: document.getElementById('vehiculo-combustible').value.trim(),
         color: document.getElementById('vehiculo-color').value.trim(),
@@ -258,6 +416,7 @@
             manoDeObra,
             cliente: leerCliente(),
             vehiculo: leerVehiculo(),
+            presupuestoNumero: document.getElementById('presupuesto-num').value.trim(),
             logo: logo || undefined,
           }),
         });

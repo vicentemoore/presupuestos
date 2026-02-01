@@ -87,10 +87,11 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     } catch (_) {}
   }
 
-  // --- Título y número (a la derecha del logo) ---
+  // --- Presupuesto Nº (a la derecha del logo) ---
   const titleX = MARGIN + LOGO_WIDTH + 14;
   let y = height - MARGIN - 6;
-  page.drawText('Orden de Trabajo GPARTS', {
+  const presupuestoNumero = String(data.presupuestoNumero || '').trim();
+  page.drawText('Presupuesto Nº', {
     x: titleX,
     y,
     size: FONT_SIZE_TITLE,
@@ -98,13 +99,16 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     color: black,
   });
   y -= LINE_HEIGHT;
-  page.drawText('0000001855', {
-    x: titleX,
-    y,
-    size: FONT_SIZE,
-    font: fontBold,
-    color: black,
-  });
+  if (presupuestoNumero) {
+    page.drawText(presupuestoNumero, {
+      x: titleX,
+      y,
+      size: FONT_SIZE,
+      font: fontBold,
+      color: black,
+    });
+    y -= LINE_HEIGHT;
+  }
 
   // --- Recuadro contacto (derecha) ---
   const contactoHeight = 7 * LINE_HEIGHT + CONTACTO_PAD * 2;

@@ -54,6 +54,7 @@ function payloadToPdfData(body) {
       color: String(vehiculo.color || '').trim(),
     },
     logoBuffer,
+    presupuestoNumero: String(body.presupuestoNumero || '').trim(),
   };
 }
 
