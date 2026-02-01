@@ -189,16 +189,21 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   const clienteValueGap = 14;
   const clienteValueX = MARGIN + 6 + labelWidth + clienteValueGap;
   const col2X = MARGIN + CONTENT_WIDTH * 0.5;
-  const clienteBoxHeight = LINE_HEIGHT + 8 + 6 + 3 * LINE_HEIGHT + LINE_HEIGHT + 10; // título + espacio + 3 filas + Email
+  const clienteTitleRowH = LINE_HEIGHT + 18;
+  const clienteBoxHeight = clienteTitleRowH + 6 + 3 * LINE_HEIGHT + LINE_HEIGHT + 10; // título + espacio + 3 filas + Email
   const clienteBoxY = y - clienteBoxHeight;
   drawRect(page, MARGIN, clienteBoxY, CONTENT_WIDTH, clienteBoxHeight);
-  page.drawText('Datos del Cliente', {
+  const tituloCliente = 'Datos del Cliente';
+  page.drawText(tituloCliente, {
     x: MARGIN + 6,
     y: y - 14,
     size: FONT_SIZE_SECTION,
     font: fontBold,
     color: black,
   });
+  const anchoTituloCliente = fontBold.widthOfTextAtSize(tituloCliente, FONT_SIZE_SECTION) + 14;
+  drawLine(page, MARGIN, y - clienteTitleRowH, MARGIN + anchoTituloCliente, y - clienteTitleRowH);
+  drawLine(page, MARGIN + anchoTituloCliente, y, MARGIN + anchoTituloCliente, y - clienteTitleRowH);
   y -= LINE_HEIGHT + 18;
   const c = data.cliente || {};
   // Filas: Nombre/Fecha, Rut/Fono, Dirección (solo izq), Email (abajo)
@@ -221,16 +226,21 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   y -= 38;
 
   // --- Recuadro Datos del Vehículo (más espacio respecto a Cliente) ---
-  const vehiculoBoxHeight = LINE_HEIGHT + 8 + 6 + 4 * LINE_HEIGHT + 10;
+  const vehiculoTitleRowH = LINE_HEIGHT + 18;
+  const vehiculoBoxHeight = vehiculoTitleRowH + 6 + 4 * LINE_HEIGHT + 10;
   const vehiculoBoxY = y - vehiculoBoxHeight;
   drawRect(page, MARGIN, vehiculoBoxY, CONTENT_WIDTH, vehiculoBoxHeight);
-  page.drawText('Datos del Vehículo', {
+  const tituloVehiculo = 'Datos del Vehículo';
+  page.drawText(tituloVehiculo, {
     x: MARGIN + 6,
     y: y - 14,
     size: FONT_SIZE_SECTION,
     font: fontBold,
     color: black,
   });
+  const anchoTituloVehiculo = fontBold.widthOfTextAtSize(tituloVehiculo, FONT_SIZE_SECTION) + 14;
+  drawLine(page, MARGIN, y - vehiculoTitleRowH, MARGIN + anchoTituloVehiculo, y - vehiculoTitleRowH);
+  drawLine(page, MARGIN + anchoTituloVehiculo, y, MARGIN + anchoTituloVehiculo, y - vehiculoTitleRowH);
   y -= LINE_HEIGHT + 18;
   const v = data.vehiculo || {};
   const vehiculoLeft = [
