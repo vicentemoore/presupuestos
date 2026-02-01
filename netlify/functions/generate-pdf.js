@@ -8,11 +8,13 @@ const { generatePresupuestoPdf } = require('./lib/generatePdf');
 function payloadToPdfData(body) {
   const repuestos = (body.repuestos || []).map((r) => ({
     descripcion: String(r.descripcion || '').trim(),
+    cantidad: Math.max(1, parseInt(r.cantidad, 10) || 1),
     valorTotal: Number(r.valor) || 0,
   })).filter((r) => r.descripcion);
 
   const manoDeObra = (body.manoDeObra || []).map((m) => ({
     descripcion: String(m.descripcion || '').trim(),
+    cantidad: Math.max(1, parseInt(m.cantidad, 10) || 1),
     valorTotal: Number(m.valor) || 0,
   })).filter((m) => m.descripcion);
 
