@@ -162,12 +162,10 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   const contactoY = height - MARGIN - contactoHeight;
   drawRect(page, contactoX, contactoY, CONTACTO_WIDTH, contactoHeight);
   const contactLines = [
-    'joaquin Miranda',
-    'jmiranda@gparts.cl',
-    'Av. Pedro de Valdivia 5198, Ñuñoa.',
-    'Santiago, Chile',
+    'Joaquin Miranda T',
+    'Sanchez Fontecilla 4655',
+    'Puente Alto, Región Metropolitana',
     '+56 9 8136 7788',
-    'www.gparts.cl',
     'COPIA CLIENTE',
   ];
   let yContacto = height - MARGIN - CONTACTO_PAD - 12;
