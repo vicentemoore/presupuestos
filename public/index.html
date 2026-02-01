@@ -13,7 +13,7 @@
       margin: 0 auto;
       padding: 1.5rem 1.5rem 3rem;
       color: #1e293b;
-      background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%);
+      background: linear-gradient(to bottom, #eef2f6 0%, #e2e8f0 100%);
       min-height: 100vh;
     }
     h1 {
@@ -138,8 +138,8 @@
       min-width: 0;
     }
     .col-desc { width: 50%; }
-    .col-cant { width: 10%; }
-    .col-valor { width: 14%; }
+    .col-cant { width: 10%; text-align: right; }
+    .col-valor { width: 14%; text-align: right; }
     .col-total { width: 14%; text-align: right; }
     .col-del { width: 12%; }
     .col-total-cell { text-align: right; font-weight: 500; color: #334155; }
@@ -310,7 +310,7 @@
         </div>
         <div>
           <label for="vehiculo-kilometraje">Kilometraje</label>
-          <input type="number" id="vehiculo-kilometraje" value="120563" min="0" step="1" placeholder="Ej. 120563">
+          <input type="text" id="vehiculo-kilometraje" value="120.563" placeholder="Ej. 120.563" data-raw="120563">
         </div>
         <div>
           <label for="vehiculo-vin">VIN</label>
@@ -437,6 +437,18 @@
     addRepuesto.addEventListener('click', function() { addFila(bodyRepuestos); });
     addMano.addEventListener('click', function() { addFila(bodyMano); });
 
+    (function initKilometraje() {
+      var kmInput = document.getElementById('vehiculo-kilometraje');
+      if (!kmInput) return;
+      function formatKm() {
+        var v = parseValor(kmInput.value);
+        kmInput.dataset.raw = v;
+        kmInput.value = v === 0 ? '' : formatMiles(v);
+      }
+      kmInput.addEventListener('input', formatKm);
+      kmInput.addEventListener('blur', formatKm);
+    })();
+
     var row0Rep = filaTabla();
     row0Rep.querySelector('input[name="valor"]').value = '';
     row0Rep.querySelector('input[name="valor"]').dataset.raw = '0';
@@ -485,7 +497,7 @@
     }
     function leerVehiculo() {
       var kmInput = document.getElementById('vehiculo-kilometraje');
-      var kilometraje = kmInput.type === 'number' ? String(kmInput.value).trim() : kmInput.value.trim();
+      var kilometraje = kmInput.dataset.raw !== undefined && kmInput.dataset.raw !== '' ? String(kmInput.dataset.raw) : String(parseValor(kmInput.value));
       return {
         patente: document.getElementById('vehiculo-patente').value.trim(),
         ano: document.getElementById('vehiculo-ano').value.trim(),

@@ -181,7 +181,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   });
 
   // Inicio del contenido: debajo del recuadro de contacto Y debajo de "Presupuesto N°" (evitar solapamiento si el recuadro es pequeño)
-  const presupuestoBottomY = height - MARGIN - LOGO_HEIGHT - 18 - LINE_HEIGHT - FONT_SIZE_PRESUPUESTO - 8;
+  const presupuestoBottomY = height - MARGIN - LOGO_HEIGHT - 18 - FONT_SIZE_PRESUPUESTO - 11;
   y = Math.min(contactoY - 12 - LINE_HEIGHT - 4, presupuestoBottomY);
 
   // --- Recuadro Datos del Cliente (valores con algo más de margen respecto a labels) ---
