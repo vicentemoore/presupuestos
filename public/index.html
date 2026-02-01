@@ -3,31 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Presupuestos – Excel a PDF</title>
+  <title>Presupuestos</title>
   <style>
     * { box-sizing: border-box; }
     body {
       font-family: system-ui, -apple-system, sans-serif;
-      max-width: 480px;
+      max-width: 720px;
       margin: 2rem auto;
       padding: 0 1rem;
       color: #1a1a1a;
     }
-    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
-    p { color: #555; margin-bottom: 1.5rem; }
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-    }
-    input[type="file"] {
-      width: 100%;
-      padding: 0.75rem;
+    h1 { font-size: 1.5rem; margin-bottom: 1.5rem; }
+    section { margin-bottom: 2rem; }
+    section h2 { font-size: 1.1rem; margin-bottom: 0.75rem; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; }
+    th, td {
+      padding: 0.5rem;
       border: 1px solid #ccc;
-      border-radius: 8px;
-      background: #fafafa;
+      text-align: left;
     }
-    button {
+    th { background: #f5f5f5; font-weight: 600; }
+    td input { width: 100%; padding: 0.4rem; border: 1px solid #ddd; border-radius: 4px; }
+    td input[type="number"] { text-align: right; }
+    .col-desc { width: 50%; }
+    .col-cant { width: 15%; }
+    .col-valor { width: 20%; }
+    .col-del { width: 15%; }
+    .btn-row { padding: 0.25rem 0.5rem; font-size: 0.85rem; cursor: pointer; background: #ef4444; color: #fff; border: none; border-radius: 4px; }
+    .btn-row:hover { background: #dc2626; }
+    .btn-add { padding: 0.5rem 1rem; font-size: 0.9rem; cursor: pointer; background: #22c55e; color: #fff; border: none; border-radius: 6px; margin-bottom: 1rem; }
+    .btn-add:hover { background: #16a34a; }
+    .btn-pdf {
       width: 100%;
       margin-top: 1rem;
       padding: 0.75rem 1rem;
@@ -39,72 +45,115 @@
       border-radius: 8px;
       cursor: pointer;
     }
-    button:hover { background: #1d4ed8; }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
-    .error {
-      margin-top: 1rem;
-      padding: 0.75rem;
-      background: #fef2f2;
-      color: #b91c1c;
-      border-radius: 8px;
-      font-size: 0.9rem;
-    }
-    .success {
-      margin-top: 1rem;
-      padding: 0.75rem;
-      background: #f0fdf4;
-      color: #166534;
-      border-radius: 8px;
-      font-size: 0.9rem;
-    }
+    .btn-pdf:hover { background: #1d4ed8; }
+    .btn-pdf:disabled { opacity: 0.6; cursor: not-allowed; }
+    .error { margin-top: 1rem; padding: 0.75rem; background: #fef2f2; color: #b91c1c; border-radius: 8px; font-size: 0.9rem; }
+    .success { margin-top: 1rem; padding: 0.75rem; background: #f0fdf4; color: #166534; border-radius: 8px; font-size: 0.9rem; }
   </style>
 </head>
 <body>
-  <h1>Presupuestos – Excel a PDF</h1>
-  <p>Sube un Excel con el formato del presupuesto (hoja "Table 1" con Repuestos y Mano de Obra) y descarga el PDF.</p>
-  <form id="form">
-    <label for="file">Archivo Excel (.xlsx)</label>
-    <input type="file" id="file" name="file" accept=".xlsx" required>
-    <button type="submit" id="btn">Generar PDF</button>
-  </form>
+  <h1>Presupuestos</h1>
+
+  <section>
+    <h2>Repuestos</h2>
+    <table id="tabla-repuestos">
+      <thead>
+        <tr>
+          <th class="col-desc">Descripción</th>
+          <th class="col-cant">Cantidad</th>
+          <th class="col-valor">Valor</th>
+          <th class="col-del"></th>
+        </tr>
+      </thead>
+      <tbody id="body-repuestos"></tbody>
+    </table>
+    <button type="button" class="btn-add" id="add-repuesto">+ Añadir fila</button>
+  </section>
+
+  <section>
+    <h2>Mano de Obra</h2>
+    <table id="tabla-mano">
+      <thead>
+        <tr>
+          <th class="col-desc">Descripción</th>
+          <th class="col-cant">Cantidad</th>
+          <th class="col-valor">Valor</th>
+          <th class="col-del"></th>
+        </tr>
+      </thead>
+      <tbody id="body-mano"></tbody>
+    </table>
+    <button type="button" class="btn-add" id="add-mano">+ Añadir fila</button>
+  </section>
+
+  <button type="button" class="btn-pdf" id="btn-pdf">Generar PDF</button>
   <div id="message"></div>
 
   <script>
-    const form = document.getElementById('form');
-    const fileInput = document.getElementById('file');
-    const btn = document.getElementById('btn');
+    const bodyRepuestos = document.getElementById('body-repuestos');
+    const bodyMano = document.getElementById('body-mano');
+    const addRepuesto = document.getElementById('add-repuesto');
+    const addMano = document.getElementById('add-mano');
+    const btnPdf = document.getElementById('btn-pdf');
     const message = document.getElementById('message');
+
+    function filaTabla(onRemove) {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="col-desc"><input type="text" name="desc" placeholder="Descripción"></td>' +
+        '<td class="col-cant"><input type="number" name="cant" min="0" value="1" placeholder="0"></td>' +
+        '<td class="col-valor"><input type="number" name="valor" min="0" value="0" placeholder="0"></td>' +
+        '<td class="col-del"><button type="button" class="btn-row" title="Quitar fila">Quitar</button></td>';
+      const desc = tr.querySelector('input[name="desc"]');
+      const cant = tr.querySelector('input[name="cant"]');
+      const valor = tr.querySelector('input[name="valor"]');
+      tr.querySelector('.btn-row').addEventListener('click', () => {
+        tr.remove();
+      });
+      return { tr, desc, cant, valor };
+    }
+
+    function addFila(tbody) {
+      const { tr } = filaTabla();
+      tbody.appendChild(tr);
+    }
+
+    addRepuesto.addEventListener('click', () => addFila(bodyRepuestos));
+    addMano.addEventListener('click', () => addFila(bodyMano));
+
+    // Una fila inicial en cada tabla
+    bodyRepuestos.appendChild(filaTabla().tr);
+    bodyMano.appendChild(filaTabla().tr);
+
+    function leerFilas(tbody) {
+      const items = [];
+      tbody.querySelectorAll('tr').forEach((tr) => {
+        const desc = tr.querySelector('input[name="desc"]').value.trim();
+        const cant = parseInt(tr.querySelector('input[name="cant"]').value, 10) || 0;
+        const valor = parseInt(tr.querySelector('input[name="valor"]').value, 10) || 0;
+        if (desc) items.push({ descripcion: desc, cantidad: cant, valor });
+      });
+      return items;
+    }
 
     function showMessage(text, isError) {
       message.innerHTML = '<div class="' + (isError ? 'error' : 'success') + '">' + text + '</div>';
     }
 
-    function clearMessage() {
+    btnPdf.addEventListener('click', async () => {
       message.innerHTML = '';
-    }
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      clearMessage();
-      const file = fileInput.files[0];
-      if (!file) return;
-      btn.disabled = true;
+      const repuestos = leerFilas(bodyRepuestos);
+      const manoDeObra = leerFilas(bodyMano);
+      if (repuestos.length === 0 && manoDeObra.length === 0) {
+        showMessage('Añade al menos una fila en Repuestos o Mano de Obra.', true);
+        return;
+      }
+      btnPdf.disabled = true;
       try {
-        const base64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const dataUrl = reader.result;
-            const b64 = dataUrl.split(',')[1];
-            if (b64) resolve(b64); else reject(new Error('No se pudo leer el archivo'));
-          };
-          reader.onerror = () => reject(reader.error);
-          reader.readAsDataURL(file);
-        });
-        const baseUrl = window.location.origin;
-        const res = await fetch(baseUrl + '/.netlify/functions/generate-pdf', {
+        const res = await fetch(window.location.origin + '/.netlify/functions/generate-pdf', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ file: base64 }),
+          body: JSON.stringify({ repuestos, manoDeObra }),
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
@@ -121,7 +170,7 @@
       } catch (err) {
         showMessage(err.message || 'Error al generar el PDF.', true);
       } finally {
-        btn.disabled = false;
+        btnPdf.disabled = false;
       }
     });
   </script>
