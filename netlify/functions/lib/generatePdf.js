@@ -36,6 +36,14 @@ function formatMoneda(valor) {
   return '$ ' + Number(valor).toLocaleString('es-CL');
 }
 
+function formatKilometraje(val) {
+  const s = String(val || '').trim();
+  if (!s) return s;
+  const n = parseInt(s.replace(/\D/g, ''), 10);
+  if (isNaN(n)) return s;
+  return n.toLocaleString('es-CL');
+}
+
 function drawRect(page, x, y, w, h, thickness = BORDER) {
   page.drawRectangle({
     x,
@@ -198,13 +206,14 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   // Filas: Nombre/Fecha, Rut/Fono, Dirección (solo izq), Email (abajo)
   page.drawText('Nombre', { x: MARGIN + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
   page.drawText(c.nombre || '', { x: clienteValueX, y, size: FONT_SIZE_DATOS, font, color: black });
+  const col2ValueX = col2X + 46;
   page.drawText('Fecha', { x: col2X + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
-  page.drawText(c.fecha || '', { x: col2X + 38, y, size: FONT_SIZE_DATOS, font, color: black });
+  page.drawText(c.fecha || '', { x: col2ValueX, y, size: FONT_SIZE_DATOS, font, color: black });
   y -= LINE_HEIGHT;
   page.drawText('Rut', { x: MARGIN + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
   page.drawText(c.rut || '', { x: clienteValueX, y, size: FONT_SIZE_DATOS, font, color: black });
   page.drawText('Fono', { x: col2X + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
-  page.drawText(c.fono || '', { x: col2X + 38, y, size: FONT_SIZE_DATOS, font, color: black });
+  page.drawText(c.fono || '', { x: col2ValueX, y, size: FONT_SIZE_DATOS, font, color: black });
   y -= LINE_HEIGHT;
   page.drawText('Dirección', { x: MARGIN + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
   page.drawText(truncateToWidth(c.direccion || '', 55), { x: clienteValueX, y, size: FONT_SIZE_DATOS, font, color: black });
@@ -229,7 +238,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   const vehiculoLeft = [
     { label: 'Patente', value: v.patente || '' },
     { label: 'Marca', value: v.marca || '' },
-    { label: 'Kilometraje', value: v.kilometraje || '' },
+    { label: 'Kilometraje', value: formatKilometraje(v.kilometraje) },
     { label: 'Combustible', value: v.combustible || '' },
   ];
   const vehiculoRight = [
