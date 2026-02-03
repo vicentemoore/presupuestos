@@ -47,6 +47,9 @@ function payloadToPdfData(body) {
   const descuentoMonto = descuentos.reduce((s, d) => s + d.monto, 0);
   const totalPresupuesto = subtotalPresupuesto - descuentoMonto;
 
+  const abonoMonto = Math.max(0, parseInt(body.abonoMonto, 10) || 0);
+  const aPagarMonto = Math.max(0, parseInt(body.aPagarMonto, 10) || 0);
+
   const cliente = body.cliente || {};
   const vehiculo = body.vehiculo || {};
   let logoBuffer = null;
@@ -65,6 +68,8 @@ function payloadToPdfData(body) {
     descuentos,
     descuentoMonto,
     totalPresupuesto,
+    abonoMonto,
+    aPagarMonto,
     cliente: {
       nombre: String(cliente.nombre || '').trim(),
       fecha: String(cliente.fecha || '').trim(),

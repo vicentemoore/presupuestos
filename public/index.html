@@ -290,6 +290,35 @@
       gap: 1rem;
       padding: 0 0.25rem;
     }
+    .discounts-extras {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      padding: 0 0.25rem;
+    }
+    @media (max-width: 700px) {
+      .discounts-extras { grid-template-columns: 1fr; }
+    }
+    .discounts-extras label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.3rem;
+      font-size: 0.875rem;
+      color: #475569;
+    }
+    .discounts-extras input {
+      width: 100%;
+      padding: 0.55rem 0.65rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      text-align: right;
+    }
+    .discounts-extras input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
     .discounts-header .total-label {
       font-weight: 600;
       color: #334155;
@@ -493,6 +522,16 @@
       <button type="button" class="btn-secondary" id="btn-add-descuento">Añadir descuento</button>
     </div>
     <div id="discounts-list"></div>
+    <div class="discounts-extras" aria-label="Abono y a pagar">
+      <div>
+        <label for="abono-monto">Abono (opcional)</label>
+        <input type="text" id="abono-monto" value="" inputmode="numeric" data-raw="0">
+      </div>
+      <div>
+        <label for="a-pagar-monto">A pagar (opcional)</label>
+        <input type="text" id="a-pagar-monto" value="" inputmode="numeric" data-raw="0">
+      </div>
+    </div>
   </section>
 
   <button type="button" class="btn-pdf" id="btn-pdf">Generar PDF</button>
@@ -508,6 +547,8 @@
     const totalPreviewEl = document.getElementById('total-preview');
     const btnAddDescuento = document.getElementById('btn-add-descuento');
     const discountsList = document.getElementById('discounts-list');
+    const abonoMontoInput = document.getElementById('abono-monto');
+    const aPagarMontoInput = document.getElementById('a-pagar-monto');
 
     function formatMiles(val) {
       var n = parseInt(String(val).replace(/\D/g, ''), 10);
@@ -529,6 +570,20 @@
       var dd = String(d.getDate()).padStart(2, '0');
       fechaInput.value = yyyy + '-' + mm + '-' + dd;
     })();
+
+    function initOptionalMontoInput(inputEl) {
+      if (!inputEl) return;
+      function formatIt() {
+        var v = parseValor(inputEl.value);
+        inputEl.dataset.raw = v;
+        inputEl.value = v === 0 ? '' : formatMiles(v);
+      }
+      inputEl.addEventListener('input', formatIt);
+      inputEl.addEventListener('blur', formatIt);
+      inputEl.dataset.raw = '0';
+    }
+    initOptionalMontoInput(abonoMontoInput);
+    initOptionalMontoInput(aPagarMontoInput);
 
     var descuentoRowCounter = 0;
 
@@ -885,6 +940,10 @@
       try {
         var logo = await logoToBase64();
         var descuentos = leerDescuentos();
+        var abonoMonto = abonoMontoInput && abonoMontoInput.dataset.raw !== undefined ? parseInt(abonoMontoInput.dataset.raw, 10) : 0;
+        if (isNaN(abonoMonto) || abonoMonto < 0) abonoMonto = 0;
+        var aPagarMonto = aPagarMontoInput && aPagarMontoInput.dataset.raw !== undefined ? parseInt(aPagarMontoInput.dataset.raw, 10) : 0;
+        if (isNaN(aPagarMonto) || aPagarMonto < 0) aPagarMonto = 0;
         var res = await fetch(window.location.origin + '/.netlify/functions/generate-pdf', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -895,6 +954,8 @@
             vehiculo: leerVehiculo(),
             presupuestoNumero: document.getElementById('presupuesto-num').value.trim(),
             descuentos: descuentos,
+            abonoMonto: abonoMonto,
+            aPagarMonto: aPagarMonto,
             logo: logo || undefined,
           }),
         });
