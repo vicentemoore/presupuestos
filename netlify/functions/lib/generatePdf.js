@@ -202,7 +202,6 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     { left: { label: 'Nombre', value: c.nombre }, right: { label: 'Fecha', value: c.fecha } },
     { left: { label: 'Rut', value: c.rut }, right: { label: 'Fono', value: c.fono } },
     { left: { label: 'Dirección', value: c.direccion, truncateChars: 62 } },
-    { left: { label: 'Email', value: c.email } },
   ].filter((row) => {
     const hasLeft = row.left && isFilled(row.left.value);
     const hasRight = row.right && isFilled(row.right.value);
@@ -243,7 +242,8 @@ async function generatePresupuestoPdf(data, logoBuffer) {
 
     y -= LINE_HEIGHT;
   }
-  y -= 38;
+  // Separación dinámica: quedar justo bajo el recuadro (sin huecos grandes si faltan datos)
+  y = clienteBoxY - 22;
 
   // --- Recuadro Datos del Vehículo (más espacio respecto a Cliente) ---
   const v = data.vehiculo || {};
@@ -289,7 +289,8 @@ async function generatePresupuestoPdf(data, logoBuffer) {
 
     y -= LINE_HEIGHT;
   }
-  y -= 14;
+  // Evitar acumular desfases: anclar al borde inferior real del recuadro
+  y = vehiculoBoxY - 14;
 
   // --- Tabla: encabezado (Descripción | Valor Total); espacio claro antes de Repuestos ---
   drawRect(page, MARGIN, y - ROW_HEIGHT, CONTENT_WIDTH, ROW_HEIGHT);
@@ -345,7 +346,25 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     });
     y -= Math.max(0, ROW_HEIGHT - descLines.length * LINE_HEIGHT);
   }
-  y -= 4;
+  // Barra de "Depósito inicial de trabajos" (total repuestos) antes de Mano de Obra
+  y -= 6;
+  drawRect(page, MARGIN, y - ROW_HEIGHT, CONTENT_WIDTH, ROW_HEIGHT, BORDER_THICK);
+  drawLine(page, MARGIN + COL_DESC_WIDTH, y, MARGIN + COL_DESC_WIDTH, y - ROW_HEIGHT, BORDER_THICK);
+  page.drawText('Depósito inicial de trabajos', {
+    x: MARGIN + 6,
+    y: y - 13,
+    size: FONT_SIZE,
+    font: fontBold,
+    color: black,
+  });
+  page.drawText(formatMoneda(Number(data.totalRepuestos) || 0), {
+    x: MARGIN + COL_DESC_WIDTH + 6,
+    y: y - 13,
+    size: FONT_SIZE,
+    font: fontBold,
+    color: black,
+  });
+  y -= ROW_HEIGHT + 10;
 
   // Mano de Obra
   page.drawText('Mano de Obra', {

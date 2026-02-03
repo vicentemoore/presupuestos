@@ -48,7 +48,6 @@ function payloadToPdfData(body) {
       rut: String(cliente.rut || '').trim(),
       fono: String(cliente.fono || '').trim(),
       direccion: String(cliente.direccion || '').trim(),
-      email: String(cliente.email || '').trim(),
     },
     vehiculo: {
       patente: String(vehiculo.patente || '').trim(),

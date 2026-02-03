@@ -246,6 +246,16 @@
     .presupuesto-num-wrap {
       justify-content: center;
     }
+    .total-preview {
+      font-weight: 700;
+      color: #0f172a;
+      white-space: nowrap;
+    }
+    .total-preview span {
+      font-weight: 600;
+      color: #334155;
+      margin-right: 0.35rem;
+    }
   </style>
 </head>
 <body>
@@ -287,10 +297,6 @@
         <div class="full">
           <label for="cliente-direccion">Dirección</label>
           <input type="text" id="cliente-direccion" value="SALOMON SUMAR 3420, J-1. San Joaquín" placeholder="Ej. SALOMON SUMAR 3420, J-1. San Joaquín">
-        </div>
-        <div>
-          <label for="cliente-email">Email</label>
-          <input type="text" id="cliente-email" value="xxxx@xxx" placeholder="Ej. xxxx@xxx">
         </div>
       </div>
     </section>
@@ -388,9 +394,12 @@
     <button type="button" class="btn-add" id="add-mano">+ Añadir fila</button>
   </section>
 
-  <div class="presupuesto-num-wrap" style="margin-bottom: 0.75rem;">
+  <div class="presupuesto-num-wrap" style="margin-bottom: 0.75rem; flex-wrap: wrap;">
     <label for="descuento-monto">Descuento (monto)</label>
     <input type="text" id="descuento-monto" value="" placeholder="0" inputmode="numeric" data-raw="0">
+    <div class="total-preview">
+      <span>Total:</span><strong id="total-preview">$ 0</strong>
+    </div>
   </div>
 
   <button type="button" class="btn-pdf" id="btn-pdf">Generar PDF</button>
@@ -404,6 +413,7 @@
     const btnPdf = document.getElementById('btn-pdf');
     const message = document.getElementById('message');
     const descuentoMontoInput = document.getElementById('descuento-monto');
+    const totalPreviewEl = document.getElementById('total-preview');
 
     function formatMiles(val) {
       var n = parseInt(String(val).replace(/\D/g, ''), 10);
@@ -415,12 +425,42 @@
       return isNaN(n) ? 0 : n;
     }
 
+    function calcularSubtotal() {
+      function sumarTbody(tbody) {
+        var sum = 0;
+        tbody.querySelectorAll('tr').forEach(function(tr) {
+          var descEl = tr.querySelector('input[name="desc"]');
+          var desc = descEl ? descEl.value.trim() : '';
+          var cantEl = tr.querySelector('input[name="cant"]');
+          var cant = parseInt(cantEl ? cantEl.value : '0', 10) || 0;
+          var valorEl = tr.querySelector('input[name="valor"]');
+          var valorUnit = valorEl && valorEl.dataset.raw !== undefined ? parseInt(valorEl.dataset.raw, 10) : parseValor(valorEl ? valorEl.value : '');
+          if (isNaN(valorUnit)) valorUnit = 0;
+          var total = cant * valorUnit;
+          if (desc && total > 0) sum += total;
+        });
+        return sum;
+      }
+      return sumarTbody(bodyRepuestos) + sumarTbody(bodyMano);
+    }
+
+    function actualizarTotalPreview() {
+      if (!totalPreviewEl) return;
+      var subtotal = calcularSubtotal();
+      var descuento = descuentoMontoInput && descuentoMontoInput.dataset.raw !== undefined ? parseInt(descuentoMontoInput.dataset.raw, 10) : 0;
+      if (isNaN(descuento) || descuento < 0) descuento = 0;
+      if (descuento > subtotal) descuento = subtotal;
+      var total = subtotal - descuento;
+      totalPreviewEl.textContent = '$ ' + formatMiles(total);
+    }
+
     (function initDescuento() {
       if (!descuentoMontoInput) return;
       function formatDescuento() {
         var v = parseValor(descuentoMontoInput.value);
         descuentoMontoInput.dataset.raw = v;
         descuentoMontoInput.value = v === 0 ? '' : formatMiles(v);
+        actualizarTotalPreview();
       }
       descuentoMontoInput.addEventListener('input', formatDescuento);
       descuentoMontoInput.addEventListener('blur', formatDescuento);
@@ -435,6 +475,7 @@
       var total = cant * valorUnit;
       var totalCell = tr.querySelector('.col-total-cell');
       if (totalCell) totalCell.textContent = total === 0 ? '' : '$ ' + formatMiles(total);
+      actualizarTotalPreview();
     }
 
     function filaTabla() {
@@ -447,6 +488,7 @@
         '<td class="col-del"><button type="button" class="btn-row" title="Eliminar fila">Eliminar</button></td>';
       var cantInput = tr.querySelector('input[name="cant"]');
       var valorInput = tr.querySelector('input[name="valor"]');
+      var descInput = tr.querySelector('input[name="desc"]');
       valorInput.addEventListener('input', function() {
         var v = parseValor(this.value);
         this.dataset.raw = v;
@@ -461,7 +503,11 @@
       });
       cantInput.addEventListener('input', function() { actualizarTotalFila(tr); });
       cantInput.addEventListener('change', function() { actualizarTotalFila(tr); });
-      tr.querySelector('.btn-row').addEventListener('click', function() { tr.remove(); });
+      if (descInput) {
+        descInput.addEventListener('input', function() { actualizarTotalPreview(); });
+        descInput.addEventListener('blur', function() { actualizarTotalPreview(); });
+      }
+      tr.querySelector('.btn-row').addEventListener('click', function() { tr.remove(); actualizarTotalPreview(); });
       actualizarTotalFila(tr);
       return tr;
     }
@@ -492,6 +538,7 @@
     row0Mano.querySelector('input[name="valor"]').dataset.raw = '0';
     actualizarTotalFila(row0Mano);
     bodyMano.appendChild(row0Mano);
+    actualizarTotalPreview();
 
     function leerFilas(tbody) {
       var items = [];
@@ -525,7 +572,6 @@
         rut: document.getElementById('cliente-rut').value.trim(),
         fono: document.getElementById('cliente-fono').value.trim(),
         direccion: document.getElementById('cliente-direccion').value.trim(),
-        email: document.getElementById('cliente-email').value.trim(),
       };
     }
     function leerVehiculo() {
