@@ -10,13 +10,13 @@ function payloadToPdfData(body) {
     descripcion: String(r.descripcion || '').trim(),
     cantidad: Math.max(1, parseInt(r.cantidad, 10) || 1),
     valorTotal: Number(r.valor) || 0,
-  })).filter((r) => r.descripcion);
+  })).filter((r) => r.descripcion && r.valorTotal > 0);
 
   const manoDeObra = (body.manoDeObra || []).map((m) => ({
     descripcion: String(m.descripcion || '').trim(),
     cantidad: Math.max(1, parseInt(m.cantidad, 10) || 1),
     valorTotal: Number(m.valor) || 0,
-  })).filter((m) => m.descripcion);
+  })).filter((m) => m.descripcion && m.valorTotal > 0);
 
   const totalRepuestos = repuestos.reduce((s, r) => s + r.valorTotal, 0);
   const totalManoDeObra = manoDeObra.reduce((s, m) => s + m.valorTotal, 0);

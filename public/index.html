@@ -502,7 +502,7 @@
         var valorUnit = valorEl && valorEl.dataset.raw !== undefined ? parseInt(valorEl.dataset.raw, 10) : parseValor(valorEl ? valorEl.value : '');
         if (isNaN(valorUnit)) valorUnit = 0;
         var valorTotal = cant * valorUnit;
-        if (desc) items.push({ descripcion: desc, cantidad: cant, valor: valorTotal });
+        if (desc && valorTotal > 0) items.push({ descripcion: desc, cantidad: cant, valor: valorTotal });
       });
       return items;
     }
@@ -530,7 +530,9 @@
     }
     function leerVehiculo() {
       var kmInput = document.getElementById('vehiculo-kilometraje');
-      var kilometraje = kmInput.dataset.raw !== undefined && kmInput.dataset.raw !== '' ? String(kmInput.dataset.raw) : String(parseValor(kmInput.value));
+      var kilometraje = kmInput.value.trim() === ''
+        ? ''
+        : (kmInput.dataset.raw !== undefined && kmInput.dataset.raw !== '' ? String(kmInput.dataset.raw) : String(parseValor(kmInput.value)));
       return {
         patente: document.getElementById('vehiculo-patente').value.trim(),
         ano: document.getElementById('vehiculo-ano').value.trim(),
