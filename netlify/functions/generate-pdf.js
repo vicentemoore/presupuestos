@@ -20,7 +20,10 @@ function payloadToPdfData(body) {
 
   const totalRepuestos = repuestos.reduce((s, r) => s + r.valorTotal, 0);
   const totalManoDeObra = manoDeObra.reduce((s, m) => s + m.valorTotal, 0);
-  const totalPresupuesto = totalRepuestos + totalManoDeObra;
+  const subtotalPresupuesto = totalRepuestos + totalManoDeObra;
+  const descuentoSolicitado = Math.max(0, parseInt(body.descuentoMonto, 10) || 0);
+  const descuentoMonto = Math.min(descuentoSolicitado, subtotalPresupuesto);
+  const totalPresupuesto = subtotalPresupuesto - descuentoMonto;
 
   const cliente = body.cliente || {};
   const vehiculo = body.vehiculo || {};
@@ -36,6 +39,8 @@ function payloadToPdfData(body) {
     manoDeObra,
     totalRepuestos,
     totalManoDeObra,
+    subtotalPresupuesto,
+    descuentoMonto,
     totalPresupuesto,
     cliente: {
       nombre: String(cliente.nombre || '').trim(),

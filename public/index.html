@@ -388,6 +388,11 @@
     <button type="button" class="btn-add" id="add-mano">+ Añadir fila</button>
   </section>
 
+  <div class="presupuesto-num-wrap" style="margin-bottom: 0.75rem;">
+    <label for="descuento-monto">Descuento (monto)</label>
+    <input type="text" id="descuento-monto" value="" placeholder="0" inputmode="numeric" data-raw="0">
+  </div>
+
   <button type="button" class="btn-pdf" id="btn-pdf">Generar PDF</button>
   <div id="message" class="message-wrap"></div>
 
@@ -398,6 +403,7 @@
     const addMano = document.getElementById('add-mano');
     const btnPdf = document.getElementById('btn-pdf');
     const message = document.getElementById('message');
+    const descuentoMontoInput = document.getElementById('descuento-monto');
 
     function formatMiles(val) {
       var n = parseInt(String(val).replace(/\D/g, ''), 10);
@@ -408,6 +414,18 @@
       var n = parseInt(String(str).replace(/\D/g, ''), 10);
       return isNaN(n) ? 0 : n;
     }
+
+    (function initDescuento() {
+      if (!descuentoMontoInput) return;
+      function formatDescuento() {
+        var v = parseValor(descuentoMontoInput.value);
+        descuentoMontoInput.dataset.raw = v;
+        descuentoMontoInput.value = v === 0 ? '' : formatMiles(v);
+      }
+      descuentoMontoInput.addEventListener('input', formatDescuento);
+      descuentoMontoInput.addEventListener('blur', formatDescuento);
+      descuentoMontoInput.dataset.raw = '0';
+    })();
 
     function actualizarTotalFila(tr) {
       var cant = parseInt(tr.querySelector('input[name="cant"]').value, 10) || 0;
@@ -558,6 +576,8 @@
       btnPdf.disabled = true;
       try {
         var logo = await logoToBase64();
+        var descuentoMonto = descuentoMontoInput && descuentoMontoInput.dataset.raw !== undefined ? parseInt(descuentoMontoInput.dataset.raw, 10) : 0;
+        if (isNaN(descuentoMonto) || descuentoMonto < 0) descuentoMonto = 0;
         var res = await fetch(window.location.origin + '/.netlify/functions/generate-pdf', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -567,6 +587,7 @@
             cliente: leerCliente(),
             vehiculo: leerVehiculo(),
             presupuestoNumero: document.getElementById('presupuesto-num').value.trim(),
+            descuentoMonto: descuentoMonto,
             logo: logo || undefined,
           }),
         });
