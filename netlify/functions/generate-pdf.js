@@ -6,6 +6,14 @@ const { generatePresupuestoPdf } = require('./lib/generatePdf');
  * Valor se interpreta como total de la línea; totalPresupuesto = suma de todos.
  */
 function payloadToPdfData(body) {
+  function normalizeKey(s) {
+    let str = String(s || '').trim().toLowerCase();
+    try {
+      str = str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    } catch (_) {}
+    return str.replace(/\s+/g, ' ');
+  }
+
   const repuestos = (body.repuestos || []).map((r) => ({
     descripcion: String(r.descripcion || '').trim(),
     cantidad: Math.max(1, parseInt(r.cantidad, 10) || 1),
@@ -47,6 +55,14 @@ function payloadToPdfData(body) {
   const descuentoMonto = descuentos.reduce((s, d) => s + d.monto, 0);
   const totalPresupuesto = subtotalPresupuesto - descuentoMonto;
 
+  // Si el motivo del descuento coincide con un repuesto, mostrar ese repuesto en PDF con valor 0
+  const descuentoKeys = new Set(descuentos.map((d) => normalizeKey(d.motivo)).filter(Boolean));
+  const repuestosPdf = repuestos.map((r) => {
+    const k = normalizeKey(r.descripcion);
+    if (k && descuentoKeys.has(k)) return { ...r, valorMostrar: 0 };
+    return r;
+  });
+
   const cliente = body.cliente || {};
   const vehiculo = body.vehiculo || {};
   let logoBuffer = null;
@@ -57,7 +73,7 @@ function payloadToPdfData(body) {
   }
 
   return {
-    repuestos,
+    repuestos: repuestosPdf,
     manoDeObra,
     totalRepuestos,
     totalManoDeObra,

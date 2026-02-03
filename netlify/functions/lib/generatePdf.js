@@ -337,7 +337,8 @@ async function generatePresupuestoPdf(data, logoBuffer) {
       });
       y -= LINE_HEIGHT;
     }
-    page.drawText(formatMoneda(item.valorTotal), {
+    const valorMostrar = typeof item.valorMostrar === 'number' ? item.valorMostrar : item.valorTotal;
+    page.drawText(formatMoneda(valorMostrar), {
       x: MARGIN + COL_DESC_WIDTH + 6,
       y: firstLineY,
       size: FONT_SIZE,

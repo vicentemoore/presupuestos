@@ -531,9 +531,81 @@
       fechaInput.value = yyyy + '-' + mm + '-' + dd;
     })();
 
+    var descuentoRowCounter = 0;
+
+    function normalizeKey(s) {
+      var str = String(s || '').trim().toLowerCase();
+      try {
+        str = str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      } catch (_) {}
+      return str.replace(/\s+/g, ' ');
+    }
+
+    function getRepuestosCatalogo() {
+      var out = [];
+      bodyRepuestos.querySelectorAll('tr').forEach(function(tr) {
+        var descEl = tr.querySelector('input[name="desc"]');
+        var desc = descEl ? descEl.value.trim() : '';
+        if (!desc) return;
+        var cantEl = tr.querySelector('input[name="cant"]');
+        var cant = parseInt(cantEl ? cantEl.value : '0', 10) || 0;
+        var valorEl = tr.querySelector('input[name="valor"]');
+        var valorUnit = valorEl && valorEl.dataset.raw !== undefined ? parseInt(valorEl.dataset.raw, 10) : parseValor(valorEl ? valorEl.value : '');
+        if (isNaN(valorUnit)) valorUnit = 0;
+        var total = cant * valorUnit;
+        out.push({ descripcion: desc, total: total });
+      });
+      return out;
+    }
+
+    function getRepuestoTotalByDescripcion(desc) {
+      var key = normalizeKey(desc);
+      if (!key) return 0;
+      var catalogo = getRepuestosCatalogo();
+      return catalogo.reduce(function(s, it) {
+        if (normalizeKey(it.descripcion) === key) return s + (it.total || 0);
+        return s;
+      }, 0);
+    }
+
+    function getRepuestosUnicos() {
+      var seen = {};
+      var list = [];
+      getRepuestosCatalogo().forEach(function(it) {
+        var k = normalizeKey(it.descripcion);
+        if (!k || seen[k]) return;
+        seen[k] = true;
+        list.push(it.descripcion);
+      });
+      return list;
+    }
+
+    function updateMotivoDatalist(datalistEl, query) {
+      if (!datalistEl) return;
+      var q = normalizeKey(query);
+      var items = getRepuestosUnicos();
+      if (q) {
+        items = items
+          .map(function(t) {
+            var nk = normalizeKey(t);
+            var idx = nk.indexOf(q);
+            return { t: t, score: idx === -1 ? 9999 : idx };
+          })
+          .filter(function(o) { return o.score !== 9999; })
+          .sort(function(a, b) { return a.score - b.score; })
+          .slice(0, 10)
+          .map(function(o) { return o.t; });
+      } else {
+        items = items.slice(0, 10);
+      }
+      datalistEl.innerHTML = items.map(function(t) { return '<option value="' + t.replace(/"/g, '&quot;') + '"></option>'; }).join('');
+    }
+
     function crearDescuentoRow() {
+      descuentoRowCounter += 1;
       var row = document.createElement('div');
       row.className = 'discount-row';
+      var datalistId = 'repuestos-suggestions-' + descuentoRowCounter;
       row.innerHTML =
         '<div>' +
           '<label>Descuento (monto)</label>' +
@@ -541,7 +613,8 @@
         '</div>' +
         '<div>' +
           '<label>Motivo <span style="font-weight:500;color:#64748b;">(opcional)</span></label>' +
-          '<input type="text" class="descuento-motivo" placeholder="Ej. Termostato (opcional)">' +
+          '<input type="text" class="descuento-motivo" placeholder="Ej. Termostato (opcional)" list="' + datalistId + '">' +
+          '<datalist id="' + datalistId + '"></datalist>' +
         '</div>' +
         '<div>' +
           '<label>&nbsp;</label>' +
@@ -551,6 +624,7 @@
       var montoInput = row.querySelector('.descuento-monto');
       var motivoInput = row.querySelector('.descuento-motivo');
       var delBtn = row.querySelector('.btn-del-descuento');
+      var datalistEl = row.querySelector('#' + datalistId);
 
       function formatMonto() {
         var v = parseValor(montoInput.value);
@@ -561,13 +635,29 @@
 
       montoInput.addEventListener('input', formatMonto);
       montoInput.addEventListener('blur', formatMonto);
-      motivoInput.addEventListener('input', actualizarTotalPreview);
-      motivoInput.addEventListener('blur', actualizarTotalPreview);
+      motivoInput.addEventListener('input', function() {
+        updateMotivoDatalist(datalistEl, motivoInput.value);
+        actualizarTotalPreview();
+      });
+      motivoInput.addEventListener('blur', function() {
+        updateMotivoDatalist(datalistEl, motivoInput.value);
+        // Si el motivo coincide con un repuesto, sugerimos el monto (solo si aún no hay monto)
+        var motivo = motivoInput.value.trim();
+        var repTotal = getRepuestoTotalByDescripcion(motivo);
+        var curr = montoInput && montoInput.dataset.raw !== undefined ? parseInt(montoInput.dataset.raw, 10) : 0;
+        if ((isNaN(curr) || curr <= 0) && repTotal > 0) {
+          montoInput.dataset.raw = repTotal;
+          montoInput.value = formatMiles(repTotal);
+        }
+        actualizarTotalPreview();
+      });
       delBtn.addEventListener('click', function() {
         row.remove();
         actualizarTotalPreview();
       });
 
+      // Inicializar sugerencias con repuestos actuales
+      updateMotivoDatalist(datalistEl, '');
       return row;
     }
 
