@@ -347,7 +347,8 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     y -= Math.max(0, ROW_HEIGHT - descLines.length * LINE_HEIGHT);
   }
   // Barra de "Depósito inicial de trabajos" (total repuestos) antes de Mano de Obra
-  y -= 6;
+  // Menos aire arriba, más aire abajo (para que no quede pegado con "Mano de Obra")
+  y -= 2;
   drawRect(page, MARGIN, y - ROW_HEIGHT, CONTENT_WIDTH, ROW_HEIGHT, BORDER_THICK);
   drawLine(page, MARGIN + COL_DESC_WIDTH, y, MARGIN + COL_DESC_WIDTH, y - ROW_HEIGHT, BORDER_THICK);
   page.drawText('Depósito inicial de trabajos', {
@@ -364,7 +365,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     font: fontBold,
     color: black,
   });
-  y -= ROW_HEIGHT + 10;
+  y -= ROW_HEIGHT + 18;
 
   // Mano de Obra
   page.drawText('Mano de Obra', {
