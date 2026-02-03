@@ -238,8 +238,8 @@
       white-space: nowrap;
     }
     .presupuesto-num-wrap input {
-      max-width: 12rem;
-      padding: 0.55rem 0.65rem;
+      max-width: 9rem;
+      padding: 0.45rem 0.55rem;
       border: 1px solid #e2e8f0;
       border-radius: 6px;
       font-size: 0.9rem;
@@ -311,7 +311,7 @@
     .btn-secondary:hover { background: #0284c7; }
     .discount-row {
       display: grid;
-      grid-template-columns: 180px 1fr 110px;
+      grid-template-columns: 180px 1fr 48px;
       gap: 0.6rem;
       align-items: end;
       background: #ffffff;
@@ -342,9 +342,8 @@
       border-color: #3b82f6;
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
     }
-    .discount-row .btn-row {
-      width: 100%;
-      height: 40px;
+    .discount-row .btn-del-row {
+      justify-self: center;
       align-self: end;
     }
   </style>
@@ -356,7 +355,7 @@
 
   <div class="presupuesto-num-wrap">
     <label for="presupuesto-num">Presupuesto Nº</label>
-    <input type="text" id="presupuesto-num" value="" placeholder="Ej. 0000001855">
+    <input type="text" id="presupuesto-num" value="">
   </div>
 
   <!-- Fila 1: Cliente (izq) | Vehículo (der) -->
@@ -371,7 +370,7 @@
       <div class="form-grid">
         <div>
           <label for="cliente-nombre">Nombre</label>
-          <input type="text" id="cliente-nombre" value="" placeholder="Ej. LICORES.CL SPA">
+          <input type="text" id="cliente-nombre" value="">
         </div>
         <div>
           <label for="cliente-fecha">Fecha</label>
@@ -379,15 +378,15 @@
         </div>
         <div>
           <label for="cliente-rut">Rut</label>
-          <input type="text" id="cliente-rut" value="" placeholder="Ej. 76563323-0">
+          <input type="text" id="cliente-rut" value="">
         </div>
         <div>
           <label for="cliente-fono">Fono</label>
-          <input type="text" id="cliente-fono" value="" placeholder="Ej. +56 9 8259-6903">
+          <input type="text" id="cliente-fono" value="">
         </div>
         <div class="full">
           <label for="cliente-direccion">Dirección</label>
-          <input type="text" id="cliente-direccion" value="" placeholder="Ej. SALOMON SUMAR 3420, J-1. San Joaquín">
+          <input type="text" id="cliente-direccion" value="">
         </div>
       </div>
     </section>
@@ -402,35 +401,35 @@
       <div class="form-grid">
         <div>
           <label for="vehiculo-patente">Patente</label>
-          <input type="text" id="vehiculo-patente" value="" placeholder="Ej. JDZC-59">
+          <input type="text" id="vehiculo-patente" value="">
         </div>
         <div>
           <label for="vehiculo-ano">Año</label>
-          <input type="text" id="vehiculo-ano" value="" placeholder="Ej. 2017">
+          <input type="text" id="vehiculo-ano" value="">
         </div>
         <div>
           <label for="vehiculo-marca">Marca</label>
-          <input type="text" id="vehiculo-marca" value="" placeholder="Ej. HYUNDAI">
+          <input type="text" id="vehiculo-marca" value="">
         </div>
         <div>
           <label for="vehiculo-modelo">Modelo</label>
-          <input type="text" id="vehiculo-modelo" value="" placeholder="Ej. H1 Fg Crdi Gl 2.5">
+          <input type="text" id="vehiculo-modelo" value="">
         </div>
         <div>
           <label for="vehiculo-kilometraje">Kilometraje</label>
-          <input type="text" id="vehiculo-kilometraje" value="" placeholder="Ej. 120.563">
+          <input type="text" id="vehiculo-kilometraje" value="">
         </div>
         <div>
           <label for="vehiculo-vin">VIN</label>
-          <input type="text" id="vehiculo-vin" value="" placeholder="Ej. KMFWBX7KAGU806376">
+          <input type="text" id="vehiculo-vin" value="">
         </div>
         <div>
           <label for="vehiculo-combustible">Combustible</label>
-          <input type="text" id="vehiculo-combustible" value="" placeholder="Ej. Diesel">
+          <input type="text" id="vehiculo-combustible" value="">
         </div>
         <div>
           <label for="vehiculo-color">Color</label>
-          <input type="text" id="vehiculo-color" value="" placeholder="Ej. BLANCO">
+          <input type="text" id="vehiculo-color" value="">
         </div>
       </div>
     </section>
@@ -618,7 +617,15 @@
         '</div>' +
         '<div>' +
           '<label>&nbsp;</label>' +
-          '<button type="button" class="btn-row btn-del-descuento">Eliminar</button>' +
+          '<button type="button" class="btn-del-row btn-del-descuento" title="Eliminar descuento" aria-label="Eliminar descuento">' +
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+              '<polyline points="3 6 5 6 21 6"></polyline>' +
+              '<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>' +
+              '<path d="M10 11v6"></path>' +
+              '<path d="M14 11v6"></path>' +
+              '<path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>' +
+            '</svg>' +
+          '</button>' +
         '</div>';
 
       var montoInput = row.querySelector('.descuento-monto');
