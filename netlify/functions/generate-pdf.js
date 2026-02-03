@@ -21,8 +21,30 @@ function payloadToPdfData(body) {
   const totalRepuestos = repuestos.reduce((s, r) => s + r.valorTotal, 0);
   const totalManoDeObra = manoDeObra.reduce((s, m) => s + m.valorTotal, 0);
   const subtotalPresupuesto = totalRepuestos + totalManoDeObra;
-  const descuentoSolicitado = Math.max(0, parseInt(body.descuentoMonto, 10) || 0);
-  const descuentoMonto = Math.min(descuentoSolicitado, subtotalPresupuesto);
+  // Descuentos: nuevo formato (array) + compatibilidad con descuentoMonto antiguo
+  const rawDescuentos = Array.isArray(body.descuentos) ? body.descuentos : [];
+  const legacyMonto = Math.max(0, parseInt(body.descuentoMonto, 10) || 0);
+  const descuentosInput = rawDescuentos.length > 0
+    ? rawDescuentos
+    : (legacyMonto > 0 ? [{ monto: legacyMonto, motivo: '' }] : []);
+
+  const descuentosSanitized = descuentosInput.map((d) => ({
+    monto: Math.max(0, parseInt(d && d.monto, 10) || 0),
+    motivo: String((d && d.motivo) || '').trim(),
+  })).filter((d) => d.monto > 0);
+
+  // Evitar que el total quede negativo: recortar descuentos por orden hasta agotar subtotal
+  let restante = subtotalPresupuesto;
+  const descuentos = [];
+  for (const d of descuentosSanitized) {
+    if (restante <= 0) break;
+    const aplicado = Math.min(d.monto, restante);
+    if (aplicado > 0) {
+      descuentos.push({ monto: aplicado, motivo: d.motivo });
+      restante -= aplicado;
+    }
+  }
+  const descuentoMonto = descuentos.reduce((s, d) => s + d.monto, 0);
   const totalPresupuesto = subtotalPresupuesto - descuentoMonto;
 
   const cliente = body.cliente || {};
@@ -40,6 +62,7 @@ function payloadToPdfData(body) {
     totalRepuestos,
     totalManoDeObra,
     subtotalPresupuesto,
+    descuentos,
     descuentoMonto,
     totalPresupuesto,
     cliente: {

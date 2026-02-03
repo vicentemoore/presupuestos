@@ -152,7 +152,7 @@
     .col-cant { width: 10%; min-width: 72px; text-align: right; }
     .col-valor { width: 14%; min-width: 88px; text-align: right; }
     .col-total { width: 14%; min-width: 88px; text-align: right; }
-    .col-del { width: 12%; min-width: 80px; }
+    .col-del { width: 6%; min-width: 48px; text-align: center; }
     .col-total-cell { text-align: right; font-weight: 500; color: #334155; }
     .btn-row {
       padding: 0.3rem 0.6rem;
@@ -164,6 +164,21 @@
       border-radius: 5px;
     }
     .btn-row:hover { background: #dc2626; }
+    .btn-del-row {
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      cursor: pointer;
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+    }
+    .btn-del-row:hover { background: #dc2626; }
+    .btn-del-row svg { width: 18px; height: 18px; }
     .btn-add {
       padding: 0.5rem 1rem;
       font-size: 0.875rem;
@@ -256,6 +271,82 @@
       color: #334155;
       margin-right: 0.35rem;
     }
+    .total-preview .total-amount {
+      font-size: 1.15rem;
+      letter-spacing: -0.01em;
+    }
+    .discounts-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto 0.75rem;
+    }
+    .discounts-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0 0.25rem;
+    }
+    .discounts-header .total-label {
+      font-weight: 600;
+      color: #334155;
+    }
+    .discounts-header .total-amount {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .btn-secondary {
+      padding: 0.45rem 0.85rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: #0ea5e9;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+    }
+    .btn-secondary:hover { background: #0284c7; }
+    .discount-row {
+      display: grid;
+      grid-template-columns: 180px 1fr 110px;
+      gap: 0.6rem;
+      align-items: end;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 0.75rem 0.9rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    @media (max-width: 700px) {
+      .discount-row { grid-template-columns: 1fr; }
+    }
+    .discount-row label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.3rem;
+      font-size: 0.875rem;
+      color: #475569;
+    }
+    .discount-row input {
+      width: 100%;
+      padding: 0.55rem 0.65rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    .discount-row input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+    .discount-row .btn-row {
+      width: 100%;
+      height: 40px;
+      align-self: end;
+    }
   </style>
 </head>
 <body>
@@ -280,23 +371,23 @@
       <div class="form-grid">
         <div>
           <label for="cliente-nombre">Nombre</label>
-          <input type="text" id="cliente-nombre" value="LICORES.CL SPA" placeholder="Ej. LICORES.CL SPA">
+          <input type="text" id="cliente-nombre" value="" placeholder="Ej. LICORES.CL SPA">
         </div>
         <div>
           <label for="cliente-fecha">Fecha</label>
-          <input type="date" id="cliente-fecha" value="2023-03-17">
+          <input type="date" id="cliente-fecha" value="">
         </div>
         <div>
           <label for="cliente-rut">Rut</label>
-          <input type="text" id="cliente-rut" value="76563323-0" placeholder="Ej. 76563323-0">
+          <input type="text" id="cliente-rut" value="" placeholder="Ej. 76563323-0">
         </div>
         <div>
           <label for="cliente-fono">Fono</label>
-          <input type="text" id="cliente-fono" value="+56 9 8259-6903" placeholder="Ej. +56 9 8259-6903">
+          <input type="text" id="cliente-fono" value="" placeholder="Ej. +56 9 8259-6903">
         </div>
         <div class="full">
           <label for="cliente-direccion">Dirección</label>
-          <input type="text" id="cliente-direccion" value="SALOMON SUMAR 3420, J-1. San Joaquín" placeholder="Ej. SALOMON SUMAR 3420, J-1. San Joaquín">
+          <input type="text" id="cliente-direccion" value="" placeholder="Ej. SALOMON SUMAR 3420, J-1. San Joaquín">
         </div>
       </div>
     </section>
@@ -311,35 +402,35 @@
       <div class="form-grid">
         <div>
           <label for="vehiculo-patente">Patente</label>
-          <input type="text" id="vehiculo-patente" value="JDZC-59" placeholder="Ej. JDZC-59">
+          <input type="text" id="vehiculo-patente" value="" placeholder="Ej. JDZC-59">
         </div>
         <div>
           <label for="vehiculo-ano">Año</label>
-          <input type="text" id="vehiculo-ano" value="2017" placeholder="Ej. 2017">
+          <input type="text" id="vehiculo-ano" value="" placeholder="Ej. 2017">
         </div>
         <div>
           <label for="vehiculo-marca">Marca</label>
-          <input type="text" id="vehiculo-marca" value="HYUNDAI" placeholder="Ej. HYUNDAI">
+          <input type="text" id="vehiculo-marca" value="" placeholder="Ej. HYUNDAI">
         </div>
         <div>
           <label for="vehiculo-modelo">Modelo</label>
-          <input type="text" id="vehiculo-modelo" value="H1 Fg Crdi Gl 2.5" placeholder="Ej. H1 Fg Crdi Gl 2.5">
+          <input type="text" id="vehiculo-modelo" value="" placeholder="Ej. H1 Fg Crdi Gl 2.5">
         </div>
         <div>
           <label for="vehiculo-kilometraje">Kilometraje</label>
-          <input type="text" id="vehiculo-kilometraje" value="120.563" placeholder="Ej. 120.563" data-raw="120563">
+          <input type="text" id="vehiculo-kilometraje" value="" placeholder="Ej. 120.563">
         </div>
         <div>
           <label for="vehiculo-vin">VIN</label>
-          <input type="text" id="vehiculo-vin" value="KMFWBX7KAGU806376" placeholder="Ej. KMFWBX7KAGU806376">
+          <input type="text" id="vehiculo-vin" value="" placeholder="Ej. KMFWBX7KAGU806376">
         </div>
         <div>
           <label for="vehiculo-combustible">Combustible</label>
-          <input type="text" id="vehiculo-combustible" value="Diesel" placeholder="Ej. Diesel">
+          <input type="text" id="vehiculo-combustible" value="" placeholder="Ej. Diesel">
         </div>
         <div>
           <label for="vehiculo-color">Color</label>
-          <input type="text" id="vehiculo-color" value="BLANCO" placeholder="Ej. BLANCO">
+          <input type="text" id="vehiculo-color" value="" placeholder="Ej. BLANCO">
         </div>
       </div>
     </section>
@@ -394,13 +485,16 @@
     <button type="button" class="btn-add" id="add-mano">+ Añadir fila</button>
   </section>
 
-  <div class="presupuesto-num-wrap" style="margin-bottom: 0.75rem; flex-wrap: wrap;">
-    <label for="descuento-monto">Descuento (monto)</label>
-    <input type="text" id="descuento-monto" value="" placeholder="0" inputmode="numeric" data-raw="0">
-    <div class="total-preview">
-      <span>Total:</span><strong id="total-preview">$ 0</strong>
+  <section class="discounts-wrap" aria-label="Descuentos y total">
+    <div class="discounts-header">
+      <div class="total-preview">
+        <span class="total-label">Total:</span>
+        <strong id="total-preview" class="total-amount">$ 0</strong>
+      </div>
+      <button type="button" class="btn-secondary" id="btn-add-descuento">Añadir descuento</button>
     </div>
-  </div>
+    <div id="discounts-list"></div>
+  </section>
 
   <button type="button" class="btn-pdf" id="btn-pdf">Generar PDF</button>
   <div id="message" class="message-wrap"></div>
@@ -412,8 +506,9 @@
     const addMano = document.getElementById('add-mano');
     const btnPdf = document.getElementById('btn-pdf');
     const message = document.getElementById('message');
-    const descuentoMontoInput = document.getElementById('descuento-monto');
     const totalPreviewEl = document.getElementById('total-preview');
+    const btnAddDescuento = document.getElementById('btn-add-descuento');
+    const discountsList = document.getElementById('discounts-list');
 
     function formatMiles(val) {
       var n = parseInt(String(val).replace(/\D/g, ''), 10);
@@ -423,6 +518,77 @@
     function parseValor(str) {
       var n = parseInt(String(str).replace(/\D/g, ''), 10);
       return isNaN(n) ? 0 : n;
+    }
+
+    (function initFechaHoy() {
+      var fechaInput = document.getElementById('cliente-fecha');
+      if (!fechaInput || fechaInput.type !== 'date') return;
+      if (String(fechaInput.value || '').trim() !== '') return;
+      var d = new Date();
+      var yyyy = d.getFullYear();
+      var mm = String(d.getMonth() + 1).padStart(2, '0');
+      var dd = String(d.getDate()).padStart(2, '0');
+      fechaInput.value = yyyy + '-' + mm + '-' + dd;
+    })();
+
+    function crearDescuentoRow() {
+      var row = document.createElement('div');
+      row.className = 'discount-row';
+      row.innerHTML =
+        '<div>' +
+          '<label>Descuento (monto)</label>' +
+          '<input type="text" class="descuento-monto" placeholder="0" inputmode="numeric" data-raw="0">' +
+        '</div>' +
+        '<div>' +
+          '<label>Motivo <span style="font-weight:500;color:#64748b;">(opcional)</span></label>' +
+          '<input type="text" class="descuento-motivo" placeholder="Ej. Termostato (opcional)">' +
+        '</div>' +
+        '<div>' +
+          '<label>&nbsp;</label>' +
+          '<button type="button" class="btn-row btn-del-descuento">Eliminar</button>' +
+        '</div>';
+
+      var montoInput = row.querySelector('.descuento-monto');
+      var motivoInput = row.querySelector('.descuento-motivo');
+      var delBtn = row.querySelector('.btn-del-descuento');
+
+      function formatMonto() {
+        var v = parseValor(montoInput.value);
+        montoInput.dataset.raw = v;
+        montoInput.value = v === 0 ? '' : formatMiles(v);
+        actualizarTotalPreview();
+      }
+
+      montoInput.addEventListener('input', formatMonto);
+      montoInput.addEventListener('blur', formatMonto);
+      motivoInput.addEventListener('input', actualizarTotalPreview);
+      motivoInput.addEventListener('blur', actualizarTotalPreview);
+      delBtn.addEventListener('click', function() {
+        row.remove();
+        actualizarTotalPreview();
+      });
+
+      return row;
+    }
+
+    if (btnAddDescuento && discountsList) {
+      btnAddDescuento.addEventListener('click', function() {
+        discountsList.appendChild(crearDescuentoRow());
+      });
+    }
+
+    function leerDescuentos() {
+      var out = [];
+      if (!discountsList) return out;
+      discountsList.querySelectorAll('.discount-row').forEach(function(row) {
+        var montoEl = row.querySelector('.descuento-monto');
+        var motivoEl = row.querySelector('.descuento-motivo');
+        var monto = montoEl && montoEl.dataset.raw !== undefined ? parseInt(montoEl.dataset.raw, 10) : 0;
+        if (isNaN(monto) || monto < 0) monto = 0;
+        var motivo = motivoEl ? motivoEl.value.trim() : '';
+        if (monto > 0) out.push({ monto: monto, motivo: motivo });
+      });
+      return out;
     }
 
     function calcularSubtotal() {
@@ -447,25 +613,12 @@
     function actualizarTotalPreview() {
       if (!totalPreviewEl) return;
       var subtotal = calcularSubtotal();
-      var descuento = descuentoMontoInput && descuentoMontoInput.dataset.raw !== undefined ? parseInt(descuentoMontoInput.dataset.raw, 10) : 0;
-      if (isNaN(descuento) || descuento < 0) descuento = 0;
-      if (descuento > subtotal) descuento = subtotal;
-      var total = subtotal - descuento;
+      var descuentos = leerDescuentos();
+      var descuentoTotal = descuentos.reduce(function(s, d) { return s + (d.monto || 0); }, 0);
+      if (descuentoTotal > subtotal) descuentoTotal = subtotal;
+      var total = subtotal - descuentoTotal;
       totalPreviewEl.textContent = '$ ' + formatMiles(total);
     }
-
-    (function initDescuento() {
-      if (!descuentoMontoInput) return;
-      function formatDescuento() {
-        var v = parseValor(descuentoMontoInput.value);
-        descuentoMontoInput.dataset.raw = v;
-        descuentoMontoInput.value = v === 0 ? '' : formatMiles(v);
-        actualizarTotalPreview();
-      }
-      descuentoMontoInput.addEventListener('input', formatDescuento);
-      descuentoMontoInput.addEventListener('blur', formatDescuento);
-      descuentoMontoInput.dataset.raw = '0';
-    })();
 
     function actualizarTotalFila(tr) {
       var cant = parseInt(tr.querySelector('input[name="cant"]').value, 10) || 0;
@@ -485,7 +638,17 @@
         '<td class="col-cant"><input type="number" name="cant" min="0" value="1" placeholder="0"></td>' +
         '<td class="col-valor"><div class="col-valor-cell"><span class="valor-prefix">$</span><input type="text" name="valor" placeholder="0" data-raw="0"></div></td>' +
         '<td class="col-total-cell" tabindex="-1" aria-readonly="true"></td>' +
-        '<td class="col-del"><button type="button" class="btn-row" title="Eliminar fila">Eliminar</button></td>';
+        '<td class="col-del">' +
+          '<button type="button" class="btn-del-row" title="Eliminar fila" aria-label="Eliminar fila">' +
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+              '<polyline points="3 6 5 6 21 6"></polyline>' +
+              '<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>' +
+              '<path d="M10 11v6"></path>' +
+              '<path d="M14 11v6"></path>' +
+              '<path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>' +
+            '</svg>' +
+          '</button>' +
+        '</td>';
       var cantInput = tr.querySelector('input[name="cant"]');
       var valorInput = tr.querySelector('input[name="valor"]');
       var descInput = tr.querySelector('input[name="desc"]');
@@ -507,7 +670,7 @@
         descInput.addEventListener('input', function() { actualizarTotalPreview(); });
         descInput.addEventListener('blur', function() { actualizarTotalPreview(); });
       }
-      tr.querySelector('.btn-row').addEventListener('click', function() { tr.remove(); actualizarTotalPreview(); });
+      tr.querySelector('.btn-del-row').addEventListener('click', function() { tr.remove(); actualizarTotalPreview(); });
       actualizarTotalFila(tr);
       return tr;
     }
@@ -624,8 +787,7 @@
       btnPdf.disabled = true;
       try {
         var logo = await logoToBase64();
-        var descuentoMonto = descuentoMontoInput && descuentoMontoInput.dataset.raw !== undefined ? parseInt(descuentoMontoInput.dataset.raw, 10) : 0;
-        if (isNaN(descuentoMonto) || descuentoMonto < 0) descuentoMonto = 0;
+        var descuentos = leerDescuentos();
         var res = await fetch(window.location.origin + '/.netlify/functions/generate-pdf', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -635,7 +797,7 @@
             cliente: leerCliente(),
             vehiculo: leerVehiculo(),
             presupuestoNumero: document.getElementById('presupuesto-num').value.trim(),
-            descuentoMonto: descuentoMonto,
+            descuentos: descuentos,
             logo: logo || undefined,
           }),
         });

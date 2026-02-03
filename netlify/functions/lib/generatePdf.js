@@ -406,17 +406,21 @@ async function generatePresupuestoPdf(data, logoBuffer) {
 
   // Resumen (con descuento opcional)
   const subtotal = typeof data.subtotalPresupuesto === 'number' ? data.subtotalPresupuesto : Number(data.totalPresupuesto) || 0;
-  const descuentoMonto = Number(data.descuentoMonto) || 0;
-  const hasDescuento = descuentoMonto > 0;
-  const summaryRows = hasDescuento
-    ? [
-        { label: 'Subtotal', value: formatMoneda(subtotal), fontLeft: fontBold, fontRight: font },
-        { label: 'Descuento', value: '- ' + formatMoneda(descuentoMonto), fontLeft: fontBold, fontRight: font },
-        { label: 'Total', value: formatMoneda(data.totalPresupuesto), fontLeft: fontBold, fontRight: fontBold, thick: true },
-      ]
-    : [
-        { label: 'Total', value: formatMoneda(data.totalPresupuesto), fontLeft: fontBold, fontRight: fontBold, thick: true },
-      ];
+  const descuentos = Array.isArray(data.descuentos) ? data.descuentos : [];
+  const hasDescuentos = descuentos.length > 0;
+  const summaryRows = [];
+  if (hasDescuentos) {
+    summaryRows.push({ label: 'Subtotal', value: formatMoneda(subtotal), fontLeft: fontBold, fontRight: font });
+    descuentos.forEach((d) => {
+      const motivo = String((d && d.motivo) || '').trim();
+      const label = motivo ? 'Descuento (' + motivo + ')' : 'Descuento';
+      const monto = Math.max(0, parseInt(d && d.monto, 10) || 0);
+      summaryRows.push({ label, value: formatMoneda(monto), fontLeft: fontBold, fontRight: font });
+    });
+    summaryRows.push({ label: 'Total', value: formatMoneda(data.totalPresupuesto), fontLeft: fontBold, fontRight: fontBold, thick: true });
+  } else {
+    summaryRows.push({ label: 'Total', value: formatMoneda(data.totalPresupuesto), fontLeft: fontBold, fontRight: fontBold, thick: true });
+  }
 
   const summaryHeight = summaryRows.length * ROW_HEIGHT;
   drawRect(page, MARGIN, y - summaryHeight, CONTENT_WIDTH, summaryHeight, BORDER_THICK);
