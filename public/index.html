@@ -209,33 +209,6 @@
       box-shadow: 0 4px 8px rgba(37, 99, 235, 0.35);
     }
     .btn-pdf:disabled { opacity: 0.6; cursor: not-allowed; }
-    .nota-wrap {
-      width: 100%;
-      max-width: 1280px;
-      margin: 0 auto 1.5rem;
-    }
-    .nota-wrap label {
-      display: block;
-      font-weight: 600;
-      color: #334155;
-      margin-bottom: 0.4rem;
-      font-size: 0.9rem;
-    }
-    .nota-wrap textarea {
-      width: 100%;
-      padding: 0.65rem 0.75rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-family: inherit;
-      resize: vertical;
-      min-height: 4rem;
-    }
-    .nota-wrap textarea:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-    }
     .message-wrap { margin-top: 1rem; }
     .error {
       padding: 0.75rem 1rem;
@@ -321,7 +294,7 @@
     }
     .discounts-extras {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 3fr 7fr;
       gap: 0.75rem;
       padding: 0 0.25rem;
     }
@@ -343,6 +316,7 @@
       font-size: 0.9rem;
       text-align: right;
     }
+    .discounts-extras input.note-input { text-align: left; }
     .discounts-extras input:focus {
       outline: none;
       border-color: #3b82f6;
@@ -547,21 +521,16 @@
       <button type="button" class="btn-secondary" id="btn-add-descuento">Añadir descuento</button>
     </div>
     <div id="discounts-list"></div>
-    <div class="discounts-extras" aria-label="Abono y a pagar">
+    <div class="discounts-extras" aria-label="Abono y nota">
       <div>
         <label for="abono-monto">Abono (opcional)</label>
         <input type="text" id="abono-monto" value="" inputmode="numeric" data-raw="0">
       </div>
       <div>
-        <label for="a-pagar-monto">A pagar (opcional)</label>
-        <input type="text" id="a-pagar-monto" value="" inputmode="numeric" data-raw="0">
+        <label for="nota">Nota (opcional)</label>
+        <input type="text" id="nota" value="" class="note-input">
       </div>
     </div>
-  </section>
-
-  <section class="nota-wrap" aria-label="Nota opcional para el PDF">
-    <label for="pdf-nota">Nota (opcional)</label>
-    <textarea id="pdf-nota" rows="3" placeholder="Texto que aparecerá debajo del Total en el PDF"></textarea>
   </section>
 
   <button type="button" class="btn-pdf" id="btn-pdf">Generar PDF</button>
@@ -578,7 +547,7 @@
     const btnAddDescuento = document.getElementById('btn-add-descuento');
     const discountsList = document.getElementById('discounts-list');
     const abonoMontoInput = document.getElementById('abono-monto');
-    const aPagarMontoInput = document.getElementById('a-pagar-monto');
+    const notaInput = document.getElementById('nota');
 
     function formatMiles(val) {
       var n = parseInt(String(val).replace(/\D/g, ''), 10);
@@ -613,7 +582,6 @@
       inputEl.dataset.raw = '0';
     }
     initOptionalMontoInput(abonoMontoInput);
-    initOptionalMontoInput(aPagarMontoInput);
 
     var descuentoRowCounter = 0;
 
@@ -971,8 +939,7 @@
         var descuentos = leerDescuentos();
         var abonoMonto = abonoMontoInput && abonoMontoInput.dataset.raw !== undefined ? parseInt(abonoMontoInput.dataset.raw, 10) : 0;
         if (isNaN(abonoMonto) || abonoMonto < 0) abonoMonto = 0;
-        var aPagarMonto = aPagarMontoInput && aPagarMontoInput.dataset.raw !== undefined ? parseInt(aPagarMontoInput.dataset.raw, 10) : 0;
-        if (isNaN(aPagarMonto) || aPagarMonto < 0) aPagarMonto = 0;
+        var nota = notaInput ? notaInput.value.trim() : '';
         var res = await fetch(window.location.origin + '/.netlify/functions/generate-pdf', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -984,8 +951,7 @@
             presupuestoNumero: document.getElementById('presupuesto-num').value.trim(),
             descuentos: descuentos,
             abonoMonto: abonoMonto,
-            aPagarMonto: aPagarMonto,
-            nota: (document.getElementById('pdf-nota') || {}).value.trim() || undefined,
+            nota: nota || undefined,
             logo: logo || undefined,
           }),
         });
