@@ -21,6 +21,10 @@ const CONTACTO_WIDTH = 185;
 const CONTACTO_PAD = 8;
 const black = rgb(0, 0, 0);
 
+const FOOTER_TEXT = '*la validez de la cotización es de 7 días*';
+const FOOTER_FONT_SIZE = 9;
+const FOOTER_Y = 16;
+
 function formatMoneda(valor) {
   return '$ ' + Number(valor).toLocaleString('es-CL');
 }
@@ -35,10 +39,27 @@ function truncateToWidth(text, maxChars) {
   return safe.length <= maxChars ? safe : safe.slice(0, maxChars - 3) + '...';
 }
 
+function drawFooterOnAllPages(doc, font) {
+  const pages = doc.getPages();
+  for (const page of pages) {
+    const { width } = page.getSize();
+    const textWidth = font.widthOfTextAtSize(FOOTER_TEXT, FOOTER_FONT_SIZE);
+    const x = Math.max(0, (width - textWidth) / 2);
+    page.drawText(FOOTER_TEXT, {
+      x,
+      y: FOOTER_Y,
+      size: FOOTER_FONT_SIZE,
+      font,
+      color: black,
+    });
+  }
+}
+
 async function generatePresupuestoPdf(data, logoBuffer) {
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const fontItalic = await doc.embedFont(StandardFonts.HelveticaOblique);
   const page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
   const { height } = page.getSize();
 
@@ -151,6 +172,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   page.drawText('Total', { x: MARGIN + 6, y: y - 13, size: FONT_SIZE, font: fontBold, color: black });
   page.drawText(formatMoneda(data.totalPresupuesto), { x: MARGIN + COL_DESC_WIDTH + 6, y: y - 13, size: FONT_SIZE, font: fontBold, color: black });
 
+  drawFooterOnAllPages(doc, fontItalic);
   return doc.save();
 }
 
