@@ -10,17 +10,45 @@ function payloadToPdfData(body) {
     descripcion: String(r.descripcion || '').trim(),
     cantidad: Math.max(1, parseInt(r.cantidad, 10) || 1),
     valorTotal: Number(r.valor) || 0,
-  })).filter((r) => r.descripcion);
+  })).filter((r) => r.descripcion && r.valorTotal > 0);
 
   const manoDeObra = (body.manoDeObra || []).map((m) => ({
     descripcion: String(m.descripcion || '').trim(),
     cantidad: Math.max(1, parseInt(m.cantidad, 10) || 1),
     valorTotal: Number(m.valor) || 0,
-  })).filter((m) => m.descripcion);
+  })).filter((m) => m.descripcion && m.valorTotal > 0);
 
   const totalRepuestos = repuestos.reduce((s, r) => s + r.valorTotal, 0);
   const totalManoDeObra = manoDeObra.reduce((s, m) => s + m.valorTotal, 0);
-  const totalPresupuesto = totalRepuestos + totalManoDeObra;
+  const subtotalPresupuesto = totalRepuestos + totalManoDeObra;
+  // Descuentos: nuevo formato (array) + compatibilidad con descuentoMonto antiguo
+  const rawDescuentos = Array.isArray(body.descuentos) ? body.descuentos : [];
+  const legacyMonto = Math.max(0, parseInt(body.descuentoMonto, 10) || 0);
+  const descuentosInput = rawDescuentos.length > 0
+    ? rawDescuentos
+    : (legacyMonto > 0 ? [{ monto: legacyMonto, motivo: '' }] : []);
+
+  const descuentosSanitized = descuentosInput.map((d) => ({
+    monto: Math.max(0, parseInt(d && d.monto, 10) || 0),
+    motivo: String((d && d.motivo) || '').trim(),
+  })).filter((d) => d.monto > 0);
+
+  // Evitar que el total quede negativo: recortar descuentos por orden hasta agotar subtotal
+  let restante = subtotalPresupuesto;
+  const descuentos = [];
+  for (const d of descuentosSanitized) {
+    if (restante <= 0) break;
+    const aplicado = Math.min(d.monto, restante);
+    if (aplicado > 0) {
+      descuentos.push({ monto: aplicado, motivo: d.motivo });
+      restante -= aplicado;
+    }
+  }
+  const descuentoMonto = descuentos.reduce((s, d) => s + d.monto, 0);
+  const totalPresupuesto = subtotalPresupuesto - descuentoMonto;
+
+  const abonoMonto = Math.max(0, parseInt(body.abonoMonto, 10) || 0);
+  const aPagarMonto = Math.max(0, parseInt(body.aPagarMonto, 10) || 0);
 
   const cliente = body.cliente || {};
   const vehiculo = body.vehiculo || {};
@@ -36,12 +64,18 @@ function payloadToPdfData(body) {
     manoDeObra,
     totalRepuestos,
     totalManoDeObra,
+    subtotalPresupuesto,
+    descuentos,
+    descuentoMonto,
     totalPresupuesto,
+    abonoMonto,
+    aPagarMonto,
     cliente: {
       nombre: String(cliente.nombre || '').trim(),
       fecha: String(cliente.fecha || '').trim(),
       rut: String(cliente.rut || '').trim(),
       fono: String(cliente.fono || '').trim(),
+      direccion: String(cliente.direccion || '').trim(),
       email: String(cliente.email || '').trim(),
     },
     vehiculo: {

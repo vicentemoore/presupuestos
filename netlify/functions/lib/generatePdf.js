@@ -70,6 +70,10 @@ function truncateToWidth(text, maxChars) {
   return safe.slice(0, maxChars - 3) + '...';
 }
 
+function isFilled(val) {
+  return String(val || '').trim() !== '';
+}
+
 /**
  * Divide el texto en líneas que no superen maxWidth (en puntos).
  * Usa la fuente para medir; si una palabra se pasa, la parte en la línea siguiente.
@@ -192,7 +196,8 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   const clienteValueGap = 14;
   const clienteValueX = MARGIN + 6 + labelWidth + clienteValueGap;
   const col2X = MARGIN + CONTENT_WIDTH * 0.5;
-  const clienteBoxHeight = LINE_HEIGHT + 8 + 6 + 2 * LINE_HEIGHT + LINE_HEIGHT + 10; // título + espacio + 2 filas + Email
+  const col2ValueX = col2X + 46;
+  const clienteBoxHeight = LINE_HEIGHT + 8 + 6 + 3 * LINE_HEIGHT + LINE_HEIGHT + 10; // título + espacio + 3 filas + Email
   const clienteBoxY = y - clienteBoxHeight;
   drawRect(page, MARGIN, clienteBoxY, CONTENT_WIDTH, clienteBoxHeight);
   page.drawText('Datos del Cliente', {
@@ -204,10 +209,8 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   });
   y -= LINE_HEIGHT + 18;
   const c = data.cliente || {};
-  // Filas: Nombre/Fecha, Rut/Fono, Email (abajo)
   page.drawText('Nombre', { x: MARGIN + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
   page.drawText(c.nombre || '', { x: clienteValueX, y, size: FONT_SIZE_DATOS, font, color: black });
-  const col2ValueX = col2X + 46;
   page.drawText('Fecha', { x: col2X + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
   page.drawText(c.fecha || '', { x: col2ValueX, y, size: FONT_SIZE_DATOS, font, color: black });
   y -= LINE_HEIGHT;
@@ -216,12 +219,26 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   page.drawText('Fono', { x: col2X + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
   page.drawText(c.fono || '', { x: col2ValueX, y, size: FONT_SIZE_DATOS, font, color: black });
   y -= LINE_HEIGHT;
+  page.drawText('Dirección', { x: MARGIN + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
+  page.drawText(truncateToWidth(c.direccion || '', 62), { x: clienteValueX, y, size: FONT_SIZE_DATOS, font, color: black });
+  y -= LINE_HEIGHT;
   page.drawText('Email', { x: MARGIN + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
   page.drawText(c.email || '', { x: clienteValueX, y, size: FONT_SIZE_DATOS, font, color: black });
   y -= 38;
 
   // --- Recuadro Datos del Vehículo (más espacio respecto a Cliente) ---
-  const vehiculoBoxHeight = LINE_HEIGHT + 8 + 6 + 4 * LINE_HEIGHT + 10;
+  const v = data.vehiculo || {};
+  const vehiculoRows = [
+    { left: { label: 'Patente', value: v.patente }, right: { label: 'Año', value: v.ano } },
+    { left: { label: 'Marca', value: v.marca }, right: { label: 'Modelo', value: v.modelo } },
+    { left: { label: 'Kilometraje', value: formatKilometraje(v.kilometraje) }, right: { label: 'VIN', value: v.vin } },
+    { left: { label: 'Combustible', value: v.combustible }, right: { label: 'Color', value: v.color } },
+  ].filter((row) => {
+    const hasLeft = row.left && isFilled(row.left.value);
+    const hasRight = row.right && isFilled(row.right.value);
+    return hasLeft || hasRight;
+  });
+  const vehiculoBoxHeight = (LINE_HEIGHT + 18) + (vehiculoRows.length * LINE_HEIGHT) + 6;
   const vehiculoBoxY = y - vehiculoBoxHeight;
   drawRect(page, MARGIN, vehiculoBoxY, CONTENT_WIDTH, vehiculoBoxHeight);
   page.drawText('Datos del Vehículo', {
@@ -232,27 +249,29 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     color: black,
   });
   y -= LINE_HEIGHT + 18;
-  const v = data.vehiculo || {};
-  const vehiculoLeft = [
-    { label: 'Patente', value: v.patente || '' },
-    { label: 'Marca', value: v.marca || '' },
-    { label: 'Kilometraje', value: formatKilometraje(v.kilometraje) },
-    { label: 'Combustible', value: v.combustible || '' },
-  ];
-  const vehiculoRight = [
-    { label: 'Año', value: v.ano || '' },
-    { label: 'Modelo', value: v.modelo || '' },
-    { label: 'VIN', value: v.vin || '' },
-    { label: 'Color', value: v.color || '' },
-  ];
-  for (let i = 0; i < 4; i++) {
-    page.drawText(vehiculoLeft[i].label, { x: MARGIN + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
-    page.drawText(vehiculoLeft[i].value, { x: MARGIN + 82, y, size: FONT_SIZE_DATOS, font, color: black });
-    page.drawText(vehiculoRight[i].label, { x: col2X + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
-    page.drawText(vehiculoRight[i].value, { x: col2X + 52, y, size: FONT_SIZE_DATOS, font, color: black });
+  for (const row of vehiculoRows) {
+    const leftHas = row.left && isFilled(row.left.value);
+    const rightHas = row.right && isFilled(row.right.value);
+
+    if (leftHas) {
+      page.drawText(row.left.label, { x: MARGIN + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
+      page.drawText(String(row.left.value), { x: MARGIN + 82, y, size: FONT_SIZE_DATOS, font, color: black });
+    }
+
+    if (rightHas) {
+      if (leftHas) {
+        page.drawText(row.right.label, { x: col2X + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
+        page.drawText(String(row.right.value), { x: col2X + 52, y, size: FONT_SIZE_DATOS, font, color: black });
+      } else {
+        page.drawText(row.right.label, { x: MARGIN + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
+        page.drawText(String(row.right.value), { x: MARGIN + 82, y, size: FONT_SIZE_DATOS, font, color: black });
+      }
+    }
+
     y -= LINE_HEIGHT;
   }
-  y -= 14;
+  // Evitar acumular desfases: anclar al borde inferior real del recuadro
+  y = vehiculoBoxY - 14;
 
   // --- Tabla: encabezado (Descripción | Valor Total); espacio claro antes de Repuestos ---
   drawRect(page, MARGIN, y - ROW_HEIGHT, CONTENT_WIDTH, ROW_HEIGHT);
@@ -299,7 +318,8 @@ async function generatePresupuestoPdf(data, logoBuffer) {
       });
       y -= LINE_HEIGHT;
     }
-    page.drawText(formatMoneda(item.valorTotal), {
+    const valorMostrar = typeof item.valorMostrar === 'number' ? item.valorMostrar : item.valorTotal;
+    page.drawText(formatMoneda(valorMostrar), {
       x: MARGIN + COL_DESC_WIDTH + 6,
       y: firstLineY,
       size: FONT_SIZE,
@@ -308,7 +328,26 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     });
     y -= Math.max(0, ROW_HEIGHT - descLines.length * LINE_HEIGHT);
   }
-  y -= 4;
+  // Barra de "Depósito inicial de trabajos" (total repuestos) antes de Mano de Obra
+  // Menos aire arriba, más aire abajo (para que no quede pegado con "Mano de Obra")
+  y -= 2;
+  drawRect(page, MARGIN, y - ROW_HEIGHT, CONTENT_WIDTH, ROW_HEIGHT, BORDER_THICK);
+  drawLine(page, MARGIN + COL_DESC_WIDTH, y, MARGIN + COL_DESC_WIDTH, y - ROW_HEIGHT, BORDER_THICK);
+  page.drawText('Depósito inicial de trabajos', {
+    x: MARGIN + 6,
+    y: y - 13,
+    size: FONT_SIZE,
+    font: fontBold,
+    color: black,
+  });
+  page.drawText(formatMoneda(Number(data.totalRepuestos) || 0), {
+    x: MARGIN + COL_DESC_WIDTH + 6,
+    y: y - 13,
+    size: FONT_SIZE,
+    font: fontBold,
+    color: black,
+  });
+  y -= ROW_HEIGHT + 18;
 
   // Mano de Obra
   page.drawText('Mano de Obra', {
@@ -345,25 +384,59 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     });
     y -= Math.max(0, ROW_HEIGHT - descLines.length * LINE_HEIGHT);
   }
-  y -= 6;
+  // Un poco más de aire antes del resumen (Subtotal/Descuentos/Abono/A pagar/Total)
+  y -= 14;
 
-  // Fila Total con borde más grueso (sin línea suelta encima)
-  drawRect(page, MARGIN, y - ROW_HEIGHT, CONTENT_WIDTH, ROW_HEIGHT, BORDER_THICK);
-  drawLine(page, MARGIN + COL_DESC_WIDTH, y, MARGIN + COL_DESC_WIDTH, y - ROW_HEIGHT, BORDER_THICK);
-  page.drawText('Total', {
-    x: MARGIN + 6,
-    y: y - 13,
-    size: FONT_SIZE,
-    font: fontBold,
-    color: black,
-  });
-  page.drawText(formatMoneda(data.totalPresupuesto), {
-    x: MARGIN + COL_DESC_WIDTH + 6,
-    y: y - 13,
-    size: FONT_SIZE,
-    font: fontBold,
-    color: black,
-  });
+  // Resumen (con descuento opcional)
+  const subtotal = typeof data.subtotalPresupuesto === 'number' ? data.subtotalPresupuesto : Number(data.totalPresupuesto) || 0;
+  const descuentos = Array.isArray(data.descuentos) ? data.descuentos : [];
+  const hasDescuentos = descuentos.length > 0;
+  const abonoMonto = Math.max(0, parseInt(data.abonoMonto, 10) || 0);
+  const aPagarMonto = Math.max(0, parseInt(data.aPagarMonto, 10) || 0);
+  const hasExtras = abonoMonto > 0 || aPagarMonto > 0;
+  const summaryRows = [];
+  if (hasDescuentos || hasExtras) {
+    summaryRows.push({ label: 'Subtotal', value: formatMoneda(subtotal), fontLeft: fontBold, fontRight: font });
+    if (hasDescuentos) {
+      descuentos.forEach((d) => {
+        const motivo = String((d && d.motivo) || '').trim();
+        const label = motivo ? 'Descuento (' + motivo + ')' : 'Descuento';
+        const monto = Math.max(0, parseInt(d && d.monto, 10) || 0);
+        summaryRows.push({ label, value: formatMoneda(monto), fontLeft: fontBold, fontRight: font });
+      });
+    }
+    if (abonoMonto > 0) summaryRows.push({ label: 'Abono', value: formatMoneda(abonoMonto), fontLeft: fontBold, fontRight: font });
+    if (aPagarMonto > 0) summaryRows.push({ label: 'A pagar', value: formatMoneda(aPagarMonto), fontLeft: fontBold, fontRight: font });
+    summaryRows.push({ label: 'Total', value: formatMoneda(data.totalPresupuesto), fontLeft: fontBold, fontRight: fontBold, thick: true });
+  } else {
+    summaryRows.push({ label: 'Total', value: formatMoneda(data.totalPresupuesto), fontLeft: fontBold, fontRight: fontBold, thick: true });
+  }
+
+  const summaryHeight = summaryRows.length * ROW_HEIGHT;
+  drawRect(page, MARGIN, y - summaryHeight, CONTENT_WIDTH, summaryHeight, BORDER_THICK);
+  drawLine(page, MARGIN + COL_DESC_WIDTH, y, MARGIN + COL_DESC_WIDTH, y - summaryHeight, BORDER_THICK);
+  for (let i = 1; i < summaryRows.length; i++) {
+    drawLine(page, MARGIN, y - i * ROW_HEIGHT, MARGIN + CONTENT_WIDTH, y - i * ROW_HEIGHT, BORDER);
+  }
+  for (let i = 0; i < summaryRows.length; i++) {
+    const row = summaryRows[i];
+    const rowTopY = y - i * ROW_HEIGHT;
+    const textY = rowTopY - 13;
+    page.drawText(row.label, {
+      x: MARGIN + 6,
+      y: textY,
+      size: FONT_SIZE,
+      font: row.fontLeft || fontBold,
+      color: black,
+    });
+    page.drawText(row.value, {
+      x: MARGIN + COL_DESC_WIDTH + 6,
+      y: textY,
+      size: FONT_SIZE,
+      font: row.fontRight || fontBold,
+      color: black,
+    });
+  }
 
   const pdfBytes = await doc.save();
   return pdfBytes;
