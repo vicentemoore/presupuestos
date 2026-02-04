@@ -415,14 +415,6 @@
           <label for="cliente-fono">Fono</label>
           <input type="text" id="cliente-fono" value="">
         </div>
-        <div class="full">
-          <label for="cliente-direccion">Dirección</label>
-          <input type="text" id="cliente-direccion" value="">
-        </div>
-        <div>
-          <label for="cliente-email">Email</label>
-          <input type="text" id="cliente-email" value="xxxx@xxx" placeholder="Ej. xxxx@xxx">
-        </div>
       </div>
     </section>
 
@@ -904,8 +896,6 @@
           fecha: (document.getElementById('cliente-fecha') || {}).value || '',
           rut: (document.getElementById('cliente-rut') || {}).value || '',
           fono: (document.getElementById('cliente-fono') || {}).value || '',
-          direccion: (document.getElementById('cliente-direccion') || {}).value || '',
-          email: (document.getElementById('cliente-email') || {}).value || '',
         },
         vehiculo: {
           patente: (document.getElementById('vehiculo-patente') || {}).value || '',
@@ -935,8 +925,6 @@
         if (el('cliente-fecha')) el('cliente-fecha').value = state.cliente.fecha || '';
         if (el('cliente-rut')) el('cliente-rut').value = state.cliente.rut || '';
         if (el('cliente-fono')) el('cliente-fono').value = state.cliente.fono || '';
-        if (el('cliente-direccion')) el('cliente-direccion').value = state.cliente.direccion || '';
-        if (el('cliente-email')) el('cliente-email').value = state.cliente.email || '';
       }
       if (state.vehiculo) {
         if (el('vehiculo-patente')) el('vehiculo-patente').value = state.vehiculo.patente || '';
@@ -1027,7 +1015,7 @@
     })();
 
     (function bindSaveToInputs() {
-      var ids = ['presupuesto-num', 'cliente-nombre', 'cliente-fecha', 'cliente-rut', 'cliente-fono', 'cliente-direccion', 'cliente-email',
+      var ids = ['presupuesto-num', 'cliente-nombre', 'cliente-fecha', 'cliente-rut', 'cliente-fono',
         'vehiculo-patente', 'vehiculo-ano', 'vehiculo-marca', 'vehiculo-modelo', 'vehiculo-kilometraje', 'vehiculo-vin', 'vehiculo-combustible', 'vehiculo-color'];
       ids.forEach(function(id) {
         var el = document.getElementById(id);
@@ -1074,8 +1062,6 @@
         fecha: fechaValue,
         rut: document.getElementById('cliente-rut').value.trim(),
         fono: document.getElementById('cliente-fono').value.trim(),
-        direccion: document.getElementById('cliente-direccion').value.trim(),
-        email: document.getElementById('cliente-email').value.trim(),
       };
     }
     function leerVehiculo() {

@@ -202,7 +202,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   const clienteValueX = MARGIN + 6 + labelWidth + clienteValueGap;
   const col2X = MARGIN + CONTENT_WIDTH * 0.5;
   const col2ValueX = col2X + 46;
-  const clienteBoxHeight = LINE_HEIGHT + 8 + 6 + 3 * LINE_HEIGHT + LINE_HEIGHT + 10; // título + espacio + 3 filas + Email
+  const clienteBoxHeight = LINE_HEIGHT + 8 + 6 + 2 * LINE_HEIGHT + 10; // título + espacio + 2 filas (Nombre, Rut)
   const clienteBoxY = y - clienteBoxHeight;
   drawRect(page, MARGIN, clienteBoxY, CONTENT_WIDTH, clienteBoxHeight);
   page.drawText('Datos del Cliente', {
@@ -223,12 +223,6 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   page.drawText(c.rut || '', { x: clienteValueX, y, size: FONT_SIZE_DATOS, font, color: black });
   page.drawText('Fono', { x: col2X + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
   page.drawText(c.fono || '', { x: col2ValueX, y, size: FONT_SIZE_DATOS, font, color: black });
-  y -= LINE_HEIGHT;
-  page.drawText('Dirección', { x: MARGIN + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
-  page.drawText(truncateToWidth(c.direccion || '', 62), { x: clienteValueX, y, size: FONT_SIZE_DATOS, font, color: black });
-  y -= LINE_HEIGHT;
-  page.drawText('Email', { x: MARGIN + 6, y, size: FONT_SIZE_DATOS, font: fontBold, color: black });
-  page.drawText(c.email || '', { x: clienteValueX, y, size: FONT_SIZE_DATOS, font, color: black });
   y -= 38;
 
   // --- Recuadro Datos del Vehículo (más espacio respecto a Cliente) ---
