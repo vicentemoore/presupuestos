@@ -131,12 +131,17 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     logoBytes = Buffer.from(logoBuffer);
   }
   if (!logoBytes) {
-    const logoPath = path.join(__dirname, 'logo.png');
-    if (fs.existsSync(logoPath)) logoBytes = fs.readFileSync(logoPath);
+    const logoPathPdf = path.join(__dirname, 'logo-pdf.jpeg');
+    const logoPathJpeg = path.join(__dirname, 'logo.jpeg');
+    const logoPathPng = path.join(__dirname, 'logo.png');
+    if (fs.existsSync(logoPathPdf)) logoBytes = fs.readFileSync(logoPathPdf);
+    else if (fs.existsSync(logoPathJpeg)) logoBytes = fs.readFileSync(logoPathJpeg);
+    else if (fs.existsSync(logoPathPng)) logoBytes = fs.readFileSync(logoPathPng);
   }
   if (logoBytes && logoBytes.length > 0) {
     try {
-      const logoImage = await doc.embedPng(logoBytes);
+      const isJpeg = logoBytes[0] === 0xff && logoBytes[1] === 0xd8;
+      const logoImage = isJpeg ? await doc.embedJpg(logoBytes) : await doc.embedPng(logoBytes);
       const scale = LOGO_HEIGHT / logoImage.height;
       page.drawImage(logoImage, {
         x: MARGIN,
