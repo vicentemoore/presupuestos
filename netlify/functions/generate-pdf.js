@@ -88,6 +88,7 @@ function payloadToPdfData(body) {
     },
     logoBuffer,
     presupuestoNumero: String(body.presupuestoNumero || '').trim(),
+    nota: String(body.nota || '').trim(),
   };
 }
 

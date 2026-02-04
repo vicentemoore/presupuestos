@@ -22,9 +22,10 @@ const COL_DESC_WIDTH = CONTENT_WIDTH - COL_VALOR_WIDTH;
 const DESC_INDENT = 12; // margen izquierdo en celdas de descripción (Repuestos/Mano de Obra)
 const DESC_MAX_WIDTH = COL_DESC_WIDTH - DESC_INDENT - 6; // ancho útil para texto antes de columna Valor
 
-// Logo (altura fija, doble de tamaño)
-const LOGO_HEIGHT = 104;
-const LOGO_WIDTH = 104;
+// Logo (altura fija, más grande; poco espacio arriba)
+const LOGO_TOP_MARGIN = 3;
+const LOGO_HEIGHT = 170;
+const LOGO_WIDTH = 170;
 
 // Bloque contacto (derecha); algo más ancho al reducir margen
 const CONTACTO_WIDTH = 200;
@@ -145,7 +146,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
       const scale = LOGO_HEIGHT / logoImage.height;
       page.drawImage(logoImage, {
         x: MARGIN,
-        y: height - MARGIN - LOGO_HEIGHT,
+        y: height - LOGO_TOP_MARGIN - LOGO_HEIGHT,
         width: logoImage.width * scale,
         height: LOGO_HEIGHT,
       });
@@ -153,7 +154,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   }
 
   // --- Presupuesto N° debajo del logo, fuente un poco más pequeña ---
-  let y = height - MARGIN - LOGO_HEIGHT - 18;
+  let y = height - LOGO_TOP_MARGIN - LOGO_HEIGHT;
   const presupuestoNumero = String(data.presupuestoNumero || '').trim();
   const presupuestoLine = presupuestoNumero ? 'Presupuesto N° ' + presupuestoNumero : 'Presupuesto N°';
   page.drawText(presupuestoLine, {
@@ -193,7 +194,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   });
 
   // Inicio del contenido: debajo del recuadro de contacto Y debajo de "Presupuesto N°" (evitar solapamiento si el recuadro es pequeño)
-  const presupuestoBottomY = height - MARGIN - LOGO_HEIGHT - 18 - FONT_SIZE_PRESUPUESTO - 11;
+  const presupuestoBottomY = height - LOGO_TOP_MARGIN - LOGO_HEIGHT - FONT_SIZE_PRESUPUESTO - 11;
   y = Math.min(contactoY - 12 - LINE_HEIGHT - 4, presupuestoBottomY);
 
   // --- Recuadro Datos del Cliente (valores con algo más de margen respecto a labels) ---
@@ -386,17 +387,17 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   // Un poco más de aire antes del resumen (Subtotal/Descuentos/Abono/A pagar/Total)
   y -= 14;
 
-  // Resumen (con descuento opcional)
+  // Resumen: Subtotal/Descuentos/Abono (si aplican) y siempre "Saldo a pagar" = total - abono
   const subtotal = typeof data.subtotalPresupuesto === 'number' ? data.subtotalPresupuesto : Number(data.totalPresupuesto) || 0;
   const descuentos = Array.isArray(data.descuentos) ? data.descuentos : [];
   const hasDescuentos = descuentos.length > 0;
   const abonoMonto = Math.max(0, parseInt(data.abonoMonto, 10) || 0);
-  const aPagarMonto = Math.max(0, parseInt(data.aPagarMonto, 10) || 0);
-  const hasExtras = abonoMonto > 0 || aPagarMonto > 0;
+  const totalOrden = Number(data.totalPresupuesto) || 0;
+  const saldoAPagar = Math.max(0, totalOrden - abonoMonto);
   const summaryRows = [];
-  if (hasDescuentos || hasExtras) {
-    summaryRows.push({ label: 'Subtotal', value: formatMoneda(subtotal), fontLeft: fontBold, fontRight: font });
+  if (hasDescuentos || abonoMonto > 0) {
     if (hasDescuentos) {
+      summaryRows.push({ label: 'Subtotal', value: formatMoneda(subtotal), fontLeft: fontBold, fontRight: font });
       descuentos.forEach((d) => {
         const motivo = String((d && d.motivo) || '').trim();
         const label = motivo ? 'Descuento (' + motivo + ')' : 'Descuento';
@@ -405,11 +406,8 @@ async function generatePresupuestoPdf(data, logoBuffer) {
       });
     }
     if (abonoMonto > 0) summaryRows.push({ label: 'Abono', value: formatMoneda(abonoMonto), fontLeft: fontBold, fontRight: font });
-    if (aPagarMonto > 0) summaryRows.push({ label: 'A pagar', value: formatMoneda(aPagarMonto), fontLeft: fontBold, fontRight: font });
-    summaryRows.push({ label: 'Total', value: formatMoneda(data.totalPresupuesto), fontLeft: fontBold, fontRight: fontBold, thick: true });
-  } else {
-    summaryRows.push({ label: 'Total', value: formatMoneda(data.totalPresupuesto), fontLeft: fontBold, fontRight: fontBold, thick: true });
   }
+  summaryRows.push({ label: 'Saldo a pagar', value: formatMoneda(saldoAPagar), fontLeft: fontBold, fontRight: fontBold, thick: true });
 
   const summaryHeight = summaryRows.length * ROW_HEIGHT;
   drawRect(page, MARGIN, y - summaryHeight, CONTENT_WIDTH, summaryHeight, BORDER_THICK);
@@ -435,6 +433,43 @@ async function generatePresupuestoPdf(data, logoBuffer) {
       font: row.fontRight || fontBold,
       color: black,
     });
+  }
+
+  y -= summaryHeight + 20;
+  const nota = String(data.nota || '').trim();
+  if (nota) {
+    const labelNota = 'Nota: ';
+    const labelNotaWidth = fontBold.widthOfTextAtSize(labelNota, FONT_SIZE);
+    const notaLines = wrapTextByWidth(nota, font, FONT_SIZE, CONTENT_WIDTH - 12 - labelNotaWidth);
+    page.drawText(labelNota, {
+      x: MARGIN + 6,
+      y,
+      size: FONT_SIZE,
+      font: fontBold,
+      color: black,
+    });
+    if (notaLines.length > 0) {
+      page.drawText(notaLines[0], {
+        x: MARGIN + 6 + labelNotaWidth,
+        y,
+        size: FONT_SIZE,
+        font,
+        color: black,
+      });
+      y -= LINE_HEIGHT;
+      for (let i = 1; i < notaLines.length; i++) {
+        page.drawText(notaLines[i], {
+          x: MARGIN + 6,
+          y,
+          size: FONT_SIZE,
+          font,
+          color: black,
+        });
+        y -= LINE_HEIGHT;
+      }
+    } else {
+      y -= LINE_HEIGHT;
+    }
   }
 
   const pdfBytes = await doc.save();

@@ -209,6 +209,33 @@
       box-shadow: 0 4px 8px rgba(37, 99, 235, 0.35);
     }
     .btn-pdf:disabled { opacity: 0.6; cursor: not-allowed; }
+    .nota-wrap {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto 1.5rem;
+    }
+    .nota-wrap label {
+      display: block;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 0.4rem;
+      font-size: 0.9rem;
+    }
+    .nota-wrap textarea {
+      width: 100%;
+      padding: 0.65rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 4rem;
+    }
+    .nota-wrap textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
     .message-wrap { margin-top: 1rem; }
     .error {
       padding: 0.75rem 1rem;
@@ -530,6 +557,11 @@
         <input type="text" id="a-pagar-monto" value="" inputmode="numeric" data-raw="0">
       </div>
     </div>
+  </section>
+
+  <section class="nota-wrap" aria-label="Nota opcional para el PDF">
+    <label for="pdf-nota">Nota (opcional)</label>
+    <textarea id="pdf-nota" rows="3" placeholder="Texto que aparecerá debajo del Total en el PDF"></textarea>
   </section>
 
   <button type="button" class="btn-pdf" id="btn-pdf">Generar PDF</button>
@@ -913,6 +945,7 @@
         descuentos: descuentos,
         abonoRaw: abonoRaw,
         aPagarRaw: aPagarRaw,
+        nota: (document.getElementById('pdf-nota') || {}).value || '',
       };
     }
 
@@ -988,11 +1021,12 @@
         abonoMontoInput.dataset.raw = a;
         abonoMontoInput.value = a === 0 ? '' : formatMiles(a);
       }
-      if (aPagarMontoInput) {
+        if (aPagarMontoInput) {
         var p = parseInt(String(state.aPagarRaw || '0').replace(/\D/g, ''), 10) || 0;
         aPagarMontoInput.dataset.raw = p;
         aPagarMontoInput.value = p === 0 ? '' : formatMiles(p);
       }
+      if (el('pdf-nota') && state.nota !== undefined) el('pdf-nota').value = state.nota || '';
       actualizarTotalPreview();
     }
 
@@ -1131,6 +1165,7 @@
             descuentos: descuentos,
             abonoMonto: abonoMonto,
             aPagarMonto: aPagarMonto,
+            nota: (document.getElementById('pdf-nota') || {}).value.trim() || undefined,
             logo: logo || undefined,
           }),
         });
