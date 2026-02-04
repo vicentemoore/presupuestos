@@ -723,7 +723,6 @@
         montoInput.dataset.raw = v;
         montoInput.value = v === 0 ? '' : formatMiles(v);
         actualizarTotalPreview();
-        scheduleSave();
       }
 
       montoInput.addEventListener('input', formatMonto);
@@ -731,7 +730,6 @@
       motivoInput.addEventListener('input', function() {
         updateMotivoDatalist(datalistEl, motivoInput.value);
         actualizarTotalPreview();
-        scheduleSave();
       });
       motivoInput.addEventListener('blur', function() {
         updateMotivoDatalist(datalistEl, motivoInput.value);
@@ -744,12 +742,10 @@
           montoInput.value = formatMiles(repTotal);
         }
         actualizarTotalPreview();
-        scheduleSave();
       });
       delBtn.addEventListener('click', function() {
         row.remove();
         actualizarTotalPreview();
-        scheduleSave();
       });
 
       // Inicializar sugerencias con repuestos actuales
@@ -760,7 +756,6 @@
     if (btnAddDescuento && discountsList) {
       btnAddDescuento.addEventListener('click', function() {
         discountsList.appendChild(crearDescuentoRow());
-        scheduleSave();
       });
     }
 
@@ -857,12 +852,12 @@
         descInput.addEventListener('input', function() { actualizarTotalPreview(); });
         descInput.addEventListener('blur', function() { actualizarTotalPreview(); });
       }
-      tr.querySelector('.btn-del-row').addEventListener('click', function() { tr.remove(); actualizarTotalPreview(); scheduleSave(); });
+      tr.querySelector('.btn-del-row').addEventListener('click', function() { tr.remove(); actualizarTotalPreview(); });
       actualizarTotalFila(tr);
       return tr;
     }
 
-    function addFila(tbody) { tbody.appendChild(filaTabla()); scheduleSave(); }
+    function addFila(tbody) { tbody.appendChild(filaTabla()); }
     addRepuesto.addEventListener('click', function() { addFila(bodyRepuestos); });
     addMano.addEventListener('click', function() { addFila(bodyMano); });
 
@@ -889,181 +884,6 @@
     actualizarTotalFila(row0Mano);
     bodyMano.appendChild(row0Mano);
     actualizarTotalPreview();
-
-    var STORAGE_KEY = 'presupuestos-form-state';
-    var saveTimeout = null;
-
-    function getFormState() {
-      var repuestos = [];
-      bodyRepuestos.querySelectorAll('tr').forEach(function(tr) {
-        var desc = (tr.querySelector('input[name="desc"]') || {}).value || '';
-        var cant = parseInt((tr.querySelector('input[name="cant"]') || {}).value, 10) || 0;
-        var valorEl = tr.querySelector('input[name="valor"]');
-        var raw = valorEl && valorEl.dataset.raw !== undefined ? valorEl.dataset.raw : String(parseValor(valorEl ? valorEl.value : ''));
-        repuestos.push({ desc: desc, cant: cant, valorRaw: raw });
-      });
-      var mano = [];
-      bodyMano.querySelectorAll('tr').forEach(function(tr) {
-        var desc = (tr.querySelector('input[name="desc"]') || {}).value || '';
-        var cant = parseInt((tr.querySelector('input[name="cant"]') || {}).value, 10) || 0;
-        var valorEl = tr.querySelector('input[name="valor"]');
-        var raw = valorEl && valorEl.dataset.raw !== undefined ? valorEl.dataset.raw : String(parseValor(valorEl ? valorEl.value : ''));
-        mano.push({ desc: desc, cant: cant, valorRaw: raw });
-      });
-      var descuentos = [];
-      if (discountsList) {
-        discountsList.querySelectorAll('.discount-row').forEach(function(row) {
-          var montoEl = row.querySelector('.descuento-monto');
-          var motivoEl = row.querySelector('.descuento-motivo');
-          var monto = montoEl && montoEl.dataset.raw !== undefined ? montoEl.dataset.raw : '0';
-          descuentos.push({ monto: monto, motivo: (motivoEl || {}).value || '' });
-        });
-      }
-      var abonoRaw = (abonoMontoInput && abonoMontoInput.dataset.raw !== undefined) ? abonoMontoInput.dataset.raw : '0';
-      var aPagarRaw = (aPagarMontoInput && aPagarMontoInput.dataset.raw !== undefined) ? aPagarMontoInput.dataset.raw : '0';
-      return {
-        presupuestoNum: (document.getElementById('presupuesto-num') || {}).value || '',
-        cliente: {
-          nombre: (document.getElementById('cliente-nombre') || {}).value || '',
-          fecha: (document.getElementById('cliente-fecha') || {}).value || '',
-          rut: (document.getElementById('cliente-rut') || {}).value || '',
-          fono: (document.getElementById('cliente-fono') || {}).value || '',
-        },
-        vehiculo: {
-          patente: (document.getElementById('vehiculo-patente') || {}).value || '',
-          ano: (document.getElementById('vehiculo-ano') || {}).value || '',
-          marca: (document.getElementById('vehiculo-marca') || {}).value || '',
-          modelo: (document.getElementById('vehiculo-modelo') || {}).value || '',
-          kilometraje: (document.getElementById('vehiculo-kilometraje') || {}).value || '',
-          kilometrajeRaw: (document.getElementById('vehiculo-kilometraje') || {}).dataset.raw || '',
-          vin: (document.getElementById('vehiculo-vin') || {}).value || '',
-          combustible: (document.getElementById('vehiculo-combustible') || {}).value || '',
-          color: (document.getElementById('vehiculo-color') || {}).value || '',
-        },
-        repuestos: repuestos,
-        mano: mano,
-        descuentos: descuentos,
-        abonoRaw: abonoRaw,
-        aPagarRaw: aPagarRaw,
-        nota: (document.getElementById('pdf-nota') || {}).value || '',
-      };
-    }
-
-    function setFormState(state) {
-      if (!state) return;
-      var el = function(id) { return document.getElementById(id); };
-      if (el('presupuesto-num')) el('presupuesto-num').value = state.presupuestoNum || '';
-      if (state.cliente) {
-        if (el('cliente-nombre')) el('cliente-nombre').value = state.cliente.nombre || '';
-        if (el('cliente-fecha')) el('cliente-fecha').value = state.cliente.fecha || '';
-        if (el('cliente-rut')) el('cliente-rut').value = state.cliente.rut || '';
-        if (el('cliente-fono')) el('cliente-fono').value = state.cliente.fono || '';
-      }
-      if (state.vehiculo) {
-        if (el('vehiculo-patente')) el('vehiculo-patente').value = state.vehiculo.patente || '';
-        if (el('vehiculo-ano')) el('vehiculo-ano').value = state.vehiculo.ano || '';
-        if (el('vehiculo-marca')) el('vehiculo-marca').value = state.vehiculo.marca || '';
-        if (el('vehiculo-modelo')) el('vehiculo-modelo').value = state.vehiculo.modelo || '';
-        var kmEl = el('vehiculo-kilometraje');
-        if (kmEl) {
-          var kmRaw = state.vehiculo.kilometrajeRaw !== undefined && state.vehiculo.kilometrajeRaw !== '' ? state.vehiculo.kilometrajeRaw : (state.vehiculo.kilometraje || '').replace(/\D/g, '');
-          var kmNum = parseInt(kmRaw, 10) || 0;
-          kmEl.dataset.raw = kmNum;
-          kmEl.value = kmNum === 0 ? '' : formatMiles(kmNum);
-        }
-        if (el('vehiculo-vin')) el('vehiculo-vin').value = state.vehiculo.vin || '';
-        if (el('vehiculo-combustible')) el('vehiculo-combustible').value = state.vehiculo.combustible || '';
-        if (el('vehiculo-color')) el('vehiculo-color').value = state.vehiculo.color || '';
-      }
-      if (Array.isArray(state.repuestos) && state.repuestos.length > 0) {
-        bodyRepuestos.innerHTML = '';
-        state.repuestos.forEach(function(row) {
-          var tr = filaTabla();
-          tr.querySelector('input[name="desc"]').value = row.desc || '';
-          tr.querySelector('input[name="cant"]').value = row.cant || 1;
-          var raw = parseInt(String(row.valorRaw || '0').replace(/\D/g, ''), 10) || 0;
-          var vEl = tr.querySelector('input[name="valor"]');
-          vEl.dataset.raw = raw;
-          vEl.value = raw === 0 ? '' : formatMiles(raw);
-          actualizarTotalFila(tr);
-          bodyRepuestos.appendChild(tr);
-        });
-      }
-      if (Array.isArray(state.mano) && state.mano.length > 0) {
-        bodyMano.innerHTML = '';
-        state.mano.forEach(function(row) {
-          var tr = filaTabla();
-          tr.querySelector('input[name="desc"]').value = row.desc || '';
-          tr.querySelector('input[name="cant"]').value = row.cant || 1;
-          var raw = parseInt(String(row.valorRaw || '0').replace(/\D/g, ''), 10) || 0;
-          var vEl = tr.querySelector('input[name="valor"]');
-          vEl.dataset.raw = raw;
-          vEl.value = raw === 0 ? '' : formatMiles(raw);
-          actualizarTotalFila(tr);
-          bodyMano.appendChild(tr);
-        });
-      }
-      if (Array.isArray(state.descuentos) && state.descuentos.length > 0 && discountsList) {
-        discountsList.innerHTML = '';
-        state.descuentos.forEach(function(d) {
-          var row = crearDescuentoRow();
-          var montoEl = row.querySelector('.descuento-monto');
-          var motivoEl = row.querySelector('.descuento-motivo');
-          var m = parseInt(String(d.monto || '0').replace(/\D/g, ''), 10) || 0;
-          montoEl.dataset.raw = m;
-          montoEl.value = m === 0 ? '' : formatMiles(m);
-          if (motivoEl) motivoEl.value = d.motivo || '';
-          discountsList.appendChild(row);
-        });
-      }
-      if (abonoMontoInput) {
-        var a = parseInt(String(state.abonoRaw || '0').replace(/\D/g, ''), 10) || 0;
-        abonoMontoInput.dataset.raw = a;
-        abonoMontoInput.value = a === 0 ? '' : formatMiles(a);
-      }
-        if (aPagarMontoInput) {
-        var p = parseInt(String(state.aPagarRaw || '0').replace(/\D/g, ''), 10) || 0;
-        aPagarMontoInput.dataset.raw = p;
-        aPagarMontoInput.value = p === 0 ? '' : formatMiles(p);
-      }
-      if (el('pdf-nota') && state.nota !== undefined) el('pdf-nota').value = state.nota || '';
-      actualizarTotalPreview();
-    }
-
-    function scheduleSave() {
-      clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(function() {
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(getFormState()));
-        } catch (e) {}
-      }, 500);
-    }
-
-    (function tryRestore() {
-      try {
-        var raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return;
-        var state = JSON.parse(raw);
-        if (state && (state.repuestos || state.mano || state.cliente || state.vehiculo)) setFormState(state);
-      } catch (e) {}
-    })();
-
-    (function bindSaveToInputs() {
-      var ids = ['presupuesto-num', 'cliente-nombre', 'cliente-fecha', 'cliente-rut', 'cliente-fono',
-        'vehiculo-patente', 'vehiculo-ano', 'vehiculo-marca', 'vehiculo-modelo', 'vehiculo-kilometraje', 'vehiculo-vin', 'vehiculo-combustible', 'vehiculo-color'];
-      ids.forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) { el.addEventListener('input', scheduleSave); el.addEventListener('change', scheduleSave); el.addEventListener('blur', scheduleSave); }
-      });
-      if (abonoMontoInput) { abonoMontoInput.addEventListener('input', scheduleSave); abonoMontoInput.addEventListener('blur', scheduleSave); }
-      if (aPagarMontoInput) { aPagarMontoInput.addEventListener('input', scheduleSave); aPagarMontoInput.addEventListener('blur', scheduleSave); }
-    })();
-
-    window.addEventListener('beforeunload', function() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(getFormState()));
-      } catch (e) {}
-    });
 
     function leerFilas(tbody) {
       var items = [];
