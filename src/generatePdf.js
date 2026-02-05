@@ -25,6 +25,19 @@ const FOOTER_TEXT = '*la validez de la cotización es de 7 días*';
 const FOOTER_FONT_SIZE = 9;
 const FOOTER_Y = 16;
 
+const BANK_SECTION_TITLE = 'Cuenta para depósitos de repuestos:';
+const BANK_LINES = [
+  'Luz Soto',
+  '12.274.838-3',
+  'Banco de Chile',
+  'Cuenta Vista 00-023-25250-80',
+  'Joaquinmirand22@hotmail.com',
+];
+const BANK_FONT_SIZE_TITLE = 9;
+const BANK_FONT_SIZE_LINE = 9;
+const BANK_LINE_HEIGHT = 11;
+const BANK_BOTTOM_PAD = 30;
+
 function formatMoneda(valor) {
   return '$ ' + Number(valor).toLocaleString('es-CL');
 }
@@ -52,6 +65,37 @@ function drawFooterOnAllPages(doc, font) {
       font,
       color: black,
     });
+  }
+}
+
+function drawBankInfoOnFirstPage(doc, fontBold, font) {
+  const pages = doc.getPages();
+  if (!pages || pages.length === 0) return;
+  const page = pages[0];
+  const { width } = page.getSize();
+
+  let y = FOOTER_Y + BANK_BOTTOM_PAD + (BANK_LINES.length * BANK_LINE_HEIGHT) + 2;
+
+  const titleWidth = fontBold.widthOfTextAtSize(BANK_SECTION_TITLE, BANK_FONT_SIZE_TITLE);
+  page.drawText(BANK_SECTION_TITLE, {
+    x: Math.max(0, (width - titleWidth) / 2),
+    y,
+    size: BANK_FONT_SIZE_TITLE,
+    font: fontBold,
+    color: black,
+  });
+  y -= BANK_LINE_HEIGHT;
+
+  for (const line of BANK_LINES) {
+    const w = font.widthOfTextAtSize(line, BANK_FONT_SIZE_LINE);
+    page.drawText(line, {
+      x: Math.max(0, (width - w) / 2),
+      y,
+      size: BANK_FONT_SIZE_LINE,
+      font,
+      color: black,
+    });
+    y -= BANK_LINE_HEIGHT;
   }
 }
 
@@ -170,6 +214,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   page.drawText('Total', { x: MARGIN + 6, y: y - 13, size: FONT_SIZE, font: fontBold, color: black });
   page.drawText(formatMoneda(data.totalPresupuesto), { x: MARGIN + COL_DESC_WIDTH + 6, y: y - 13, size: FONT_SIZE, font: fontBold, color: black });
 
+  drawBankInfoOnFirstPage(doc, fontBold, font);
   drawFooterOnAllPages(doc, fontItalic);
   return doc.save();
 }
