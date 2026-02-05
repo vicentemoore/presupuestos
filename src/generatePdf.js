@@ -146,8 +146,9 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     yContacto -= LINE_HEIGHT;
   });
 
-  y = contactoY - 12;
-  y -= LINE_HEIGHT + 4;
+  // Reducir aire hacia abajo: empezar contenido más arriba
+  y = contactoY - 8;
+  y -= 6;
   const labelWidth = 52;
   const clienteValueX = MARGIN + 6 + labelWidth;
   const col2X = MARGIN + CONTENT_WIDTH * 0.5;

@@ -253,7 +253,7 @@ async function generatePresupuestoPdf(data, logoBuffer, orden) {
     font: fontBold,
     color: black,
   });
-  y -= LINE_HEIGHT;
+  // no usar este y para layout de secciones; recalculamos luego según recuadros
 
   // --- Recuadro contacto (derecha); altura según cantidad de líneas ---
   const contactLines = [
@@ -283,8 +283,11 @@ async function generatePresupuestoPdf(data, logoBuffer, orden) {
   });
 
   // Inicio del contenido: debajo del recuadro de contacto Y debajo de "Presupuesto N°" (evitar solapamiento si el recuadro es pequeño)
-  const presupuestoBottomY = height - LOGO_TOP_MARGIN - LOGO_HEIGHT - FONT_SIZE_PRESUPUESTO - 11;
-  y = Math.min(contactoY - 12 - LINE_HEIGHT - 4, presupuestoBottomY);
+  const headerBottomY = height - LOGO_TOP_MARGIN - LOGO_HEIGHT; // borde inferior del logo / línea de presupuesto
+  const presupuestoGap = 8; // menos aire hacia abajo
+  const contactoGap = 8; // menos aire hacia abajo
+  const presupuestoBottomY = headerBottomY - presupuestoGap;
+  y = Math.min(contactoY - contactoGap, presupuestoBottomY);
 
   // --- Recuadro Datos del Cliente (valores con algo más de margen respecto a labels) ---
   const labelWidth = 52;
