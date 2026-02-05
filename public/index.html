@@ -581,6 +581,10 @@
     const discountsList = document.getElementById('discounts-list');
     const abonoMontoInput = document.getElementById('abono-monto');
     const notaInput = document.getElementById('nota');
+    const presupuestoNumInput = document.getElementById('presupuesto-num');
+
+    const LS_LAST_PRESUPUESTO = 'presupuestos:lastGeneratedPresupuesto';
+    const LS_SKIP_NEXT_INCREMENT = 'presupuestos:skipNextPresupuestoIncrement';
 
     function formatMiles(val) {
       var n = parseInt(String(val).replace(/\D/g, ''), 10);
@@ -601,6 +605,35 @@
       var mm = String(d.getMonth() + 1).padStart(2, '0');
       var dd = String(d.getDate()).padStart(2, '0');
       fechaInput.value = yyyy + '-' + mm + '-' + dd;
+    })();
+
+    function incrementPresupuestoString(raw) {
+      var s = String(raw || '').trim();
+      if (!s) return '';
+      // Mantener solo dígitos; preservar largo para ceros a la izquierda
+      var digits = s.replace(/\D/g, '');
+      if (!digits) return '';
+      var width = digits.length;
+      var n = parseInt(digits, 10);
+      if (isNaN(n)) return '';
+      var next = String(n + 1);
+      if (next.length < width) next = next.padStart(width, '0');
+      return next;
+    }
+
+    (function initPresupuestoAutoincrement() {
+      if (!presupuestoNumInput) return;
+      // Si lo último fue una orden retomada, no autoincrementar esta vez.
+      var skip = localStorage.getItem(LS_SKIP_NEXT_INCREMENT);
+      if (skip === '1') {
+        localStorage.removeItem(LS_SKIP_NEXT_INCREMENT);
+        return;
+      }
+      // Solo autocompletar si está vacío (no pisar lo que el usuario escribió).
+      if (String(presupuestoNumInput.value || '').trim() !== '') return;
+      var last = localStorage.getItem(LS_LAST_PRESUPUESTO) || '';
+      var next = incrementPresupuestoString(last);
+      if (next) presupuestoNumInput.value = next;
     })();
 
     function initOptionalMontoInput(inputEl) {
@@ -1082,6 +1115,8 @@
           }
           var json = await res.json();
           applyOrden(json.orden || json);
+          // Marcar que la última acción fue retomar, para NO autoincrementar desde ese número
+          try { localStorage.setItem(LS_SKIP_NEXT_INCREMENT, '1'); } catch (_) {}
           showMessage('Orden retomada correctamente.', false);
         } catch (e) {
           showMessage(e.message || 'No se pudo retomar la orden.', true);
@@ -1183,6 +1218,13 @@
         a.download = filename;
         a.click();
         URL.revokeObjectURL(url);
+        // Guardar último presupuesto generado para sugerir el siguiente
+        try {
+          var p = document.getElementById('presupuesto-num');
+          var val = p ? String(p.value || '').trim() : '';
+          if (val) localStorage.setItem(LS_LAST_PRESUPUESTO, val);
+          localStorage.removeItem(LS_SKIP_NEXT_INCREMENT);
+        } catch (_) {}
         showMessage('PDF generado correctamente.', false);
       } catch (err) {
         showMessage(err.message || 'Error al generar el PDF.', true);
