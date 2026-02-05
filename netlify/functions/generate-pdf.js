@@ -122,7 +122,8 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const pdfBytes = await generatePresupuestoPdf(data, data.logoBuffer);
+    const orden = body && body.orden ? body.orden : null;
+    const pdfBytes = await generatePresupuestoPdf(data, data.logoBuffer, orden);
     const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
     return {
       statusCode: 200,

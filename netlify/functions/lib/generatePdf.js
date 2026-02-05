@@ -37,6 +37,29 @@ const FOOTER_TEXT = '*la validez de la cotización es de 7 días*';
 const FOOTER_FONT_SIZE = 9;
 const FOOTER_Y = 16;
 
+const ORDEN_PREFIX = 'PRESUPUESTOS_ORDEN_V1:';
+
+function safeOrdenForEmbed(orden) {
+  // No embebemos cosas pesadas o innecesarias (por ejemplo, logos en base64).
+  if (!orden || typeof orden !== 'object') return null;
+  const cloned = JSON.parse(JSON.stringify(orden));
+  if (cloned.logo) delete cloned.logo;
+  return cloned;
+}
+
+function embedOrdenInMetadata(doc, orden) {
+  const safe = safeOrdenForEmbed(orden);
+  if (!safe) return;
+  try {
+    const json = JSON.stringify(safe);
+    const b64 = Buffer.from(json, 'utf8').toString('base64');
+    const payload = ORDEN_PREFIX + b64;
+    if (typeof doc.setSubject === 'function') doc.setSubject(payload);
+    if (typeof doc.setKeywords === 'function') doc.setKeywords([payload]);
+    if (typeof doc.setTitle === 'function') doc.setTitle(payload);
+  } catch (_) {}
+}
+
 function formatMoneda(valor) {
   return '$ ' + Number(valor).toLocaleString('es-CL');
 }
@@ -139,7 +162,7 @@ function wrapTextByWidth(text, font, fontSize, maxWidth) {
   return lines;
 }
 
-async function generatePresupuestoPdf(data, logoBuffer) {
+async function generatePresupuestoPdf(data, logoBuffer, orden) {
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -493,6 +516,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
     }
   }
 
+  embedOrdenInMetadata(doc, orden);
   drawFooterOnAllPages(doc, fontItalic);
   const pdfBytes = await doc.save();
   return pdfBytes;

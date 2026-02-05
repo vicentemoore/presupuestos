@@ -534,6 +534,8 @@
   </section>
 
   <button type="button" class="btn-pdf" id="btn-pdf">Generar PDF</button>
+  <button type="button" class="btn-secondary" id="btn-retomar" style="width:100%;max-width:1280px;margin:0.75rem auto 0;display:block;">Retomar Orden</button>
+  <input type="file" id="file-retomar" accept="application/pdf" style="display:none;">
   <div id="message" class="message-wrap"></div>
 
   <script>
@@ -542,6 +544,8 @@
     const addRepuesto = document.getElementById('add-repuesto');
     const addMano = document.getElementById('add-mano');
     const btnPdf = document.getElementById('btn-pdf');
+    const btnRetomar = document.getElementById('btn-retomar');
+    const fileRetomar = document.getElementById('file-retomar');
     const message = document.getElementById('message');
     const totalPreviewEl = document.getElementById('total-preview');
     const btnAddDescuento = document.getElementById('btn-add-descuento');
@@ -862,7 +866,7 @@
         var valorUnit = valorEl && valorEl.dataset.raw !== undefined ? parseInt(valorEl.dataset.raw, 10) : parseValor(valorEl ? valorEl.value : '');
         if (isNaN(valorUnit)) valorUnit = 0;
         var valorTotal = cant * valorUnit;
-        if (desc && valorTotal > 0) items.push({ descripcion: desc, cantidad: cant, valor: valorTotal });
+        if (desc && valorTotal > 0) items.push({ descripcion: desc, cantidad: cant, valor: valorTotal, valorUnitario: valorUnit });
       });
       return items;
     }
@@ -907,6 +911,150 @@
       message.innerHTML = '<div class="' + (isError ? 'error' : 'success') + '">' + text + '</div>';
     }
 
+    function arrayBufferToBase64(buffer) {
+      var binary = '';
+      var bytes = new Uint8Array(buffer);
+      var len = bytes.byteLength;
+      for (var i = 0; i < len; i++) binary += String.fromCharCode(bytes[i]);
+      return btoa(binary);
+    }
+
+    function setMoneyInput(inputEl, amount) {
+      if (!inputEl) return;
+      var v = parseInt(amount, 10) || 0;
+      if (v < 0) v = 0;
+      inputEl.dataset.raw = String(v);
+      inputEl.value = v === 0 ? '' : formatMiles(v);
+    }
+
+    function clearTbody(tbody) {
+      while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+    }
+
+    function setTablaDesdeItems(tbody, items) {
+      clearTbody(tbody);
+      (items || []).forEach(function(it) {
+        var tr = filaTabla();
+        var descInput = tr.querySelector('input[name="desc"]');
+        var cantInput = tr.querySelector('input[name="cant"]');
+        var valorInput = tr.querySelector('input[name="valor"]');
+        if (descInput) descInput.value = String((it && it.descripcion) || '').trim();
+        if (cantInput) cantInput.value = String(parseInt(it && it.cantidad, 10) || 1);
+        var unit = parseInt(it && it.valorUnitario, 10);
+        if (isNaN(unit) || unit < 0) unit = 0;
+        if (valorInput) {
+          valorInput.dataset.raw = String(unit);
+          valorInput.value = unit === 0 ? '' : formatMiles(unit);
+        }
+        actualizarTotalFila(tr);
+        tbody.appendChild(tr);
+      });
+      if ((items || []).length === 0) {
+        var tr0 = filaTabla();
+        tr0.querySelector('input[name="valor"]').value = '';
+        tr0.querySelector('input[name="valor"]').dataset.raw = '0';
+        actualizarTotalFila(tr0);
+        tbody.appendChild(tr0);
+      }
+    }
+
+    function setDescuentosDesdeItems(items) {
+      if (!discountsList) return;
+      discountsList.innerHTML = '';
+      (items || []).forEach(function(d) {
+        var row = crearDescuentoRow();
+        var montoInput = row.querySelector('.descuento-monto');
+        var motivoInput = row.querySelector('.descuento-motivo');
+        var monto = parseInt(d && d.monto, 10);
+        if (isNaN(monto) || monto < 0) monto = 0;
+        if (montoInput) {
+          montoInput.dataset.raw = String(monto);
+          montoInput.value = monto === 0 ? '' : formatMiles(monto);
+        }
+        if (motivoInput) motivoInput.value = String((d && d.motivo) || '').trim();
+        discountsList.appendChild(row);
+      });
+    }
+
+    function applyOrden(orden) {
+      orden = orden || {};
+      document.getElementById('presupuesto-num').value = String(orden.presupuestoNumero || '').trim();
+
+      var c = orden.cliente || {};
+      document.getElementById('cliente-nombre').value = String(c.nombre || '').trim();
+      document.getElementById('cliente-rut').value = String(c.rut || '').trim();
+      document.getElementById('cliente-fono').value = String(c.fono || '').trim();
+      document.getElementById('cliente-direccion').value = String(c.direccion || '').trim();
+      var fechaIso = String(c.fechaIso || '').trim();
+      if (fechaIso) document.getElementById('cliente-fecha').value = fechaIso;
+
+      var v = orden.vehiculo || {};
+      document.getElementById('vehiculo-patente').value = String(v.patente || '').trim();
+      document.getElementById('vehiculo-ano').value = String(v.ano || '').trim();
+      document.getElementById('vehiculo-marca').value = String(v.marca || '').trim();
+      document.getElementById('vehiculo-modelo').value = String(v.modelo || '').trim();
+      document.getElementById('vehiculo-vin').value = String(v.vin || '').trim();
+      document.getElementById('vehiculo-combustible').value = String(v.combustible || '').trim();
+      document.getElementById('vehiculo-color').value = String(v.color || '').trim();
+      var kmInput = document.getElementById('vehiculo-kilometraje');
+      var kmRaw = String(v.kilometraje || '').replace(/\D/g, '');
+      if (kmInput) {
+        if (!kmRaw) {
+          kmInput.dataset.raw = '';
+          kmInput.value = '';
+        } else {
+          kmInput.dataset.raw = kmRaw;
+          kmInput.value = formatMiles(kmRaw);
+        }
+      }
+
+      setTablaDesdeItems(bodyRepuestos, orden.repuestos || []);
+      setTablaDesdeItems(bodyMano, orden.manoDeObra || []);
+      setDescuentosDesdeItems(orden.descuentos || []);
+      setMoneyInput(abonoMontoInput, orden.abonoMonto || 0);
+      if (notaInput) notaInput.value = String(orden.nota || '').trim();
+      actualizarTotalPreview();
+    }
+
+    if (btnRetomar && fileRetomar) {
+      btnRetomar.addEventListener('click', function() {
+        message.innerHTML = '';
+        fileRetomar.value = '';
+        fileRetomar.click();
+      });
+      fileRetomar.addEventListener('change', async function() {
+        var file = fileRetomar.files && fileRetomar.files[0];
+        if (!file) return;
+        if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') {
+          showMessage('Seleccione un archivo PDF generado por el sistema.', true);
+          return;
+        }
+        btnRetomar.disabled = true;
+        btnPdf.disabled = true;
+        try {
+          var buf = await file.arrayBuffer();
+          var b64 = arrayBufferToBase64(buf);
+          var res = await fetch(window.location.origin + '/.netlify/functions/restore-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pdfBase64: b64 }),
+          });
+          if (!res.ok) {
+            var err = await res.json().catch(function() { return {}; });
+            throw new Error(err.error || err.detail || 'No se pudo retomar la orden.');
+          }
+          var json = await res.json();
+          applyOrden(json.orden || json);
+          showMessage('Orden retomada correctamente.', false);
+        } catch (e) {
+          showMessage(e.message || 'No se pudo retomar la orden.', true);
+        } finally {
+          btnRetomar.disabled = false;
+          btnPdf.disabled = false;
+        }
+      });
+    }
+
     function logoToBase64() {
       return fetch(window.location.origin + '/logo-pdf.jpeg')
         .then(function(r) { return r.blob(); })
@@ -940,6 +1088,9 @@
         var abonoMonto = abonoMontoInput && abonoMontoInput.dataset.raw !== undefined ? parseInt(abonoMontoInput.dataset.raw, 10) : 0;
         if (isNaN(abonoMonto) || abonoMonto < 0) abonoMonto = 0;
         var nota = notaInput ? notaInput.value.trim() : '';
+        var fechaIso = (document.getElementById('cliente-fecha') || {}).value || '';
+        var kmInput = document.getElementById('vehiculo-kilometraje');
+        var kmRaw = kmInput && kmInput.dataset.raw !== undefined ? String(kmInput.dataset.raw) : '';
         var res = await fetch(window.location.origin + '/.netlify/functions/generate-pdf', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -952,6 +1103,32 @@
             descuentos: descuentos,
             abonoMonto: abonoMonto,
             nota: nota || undefined,
+            orden: {
+              version: 1,
+              presupuestoNumero: document.getElementById('presupuesto-num').value.trim(),
+              cliente: {
+                nombre: document.getElementById('cliente-nombre').value.trim(),
+                fechaIso: String(fechaIso || '').trim(),
+                rut: document.getElementById('cliente-rut').value.trim(),
+                fono: document.getElementById('cliente-fono').value.trim(),
+                direccion: document.getElementById('cliente-direccion').value.trim(),
+              },
+              vehiculo: {
+                patente: document.getElementById('vehiculo-patente').value.trim(),
+                ano: document.getElementById('vehiculo-ano').value.trim(),
+                marca: document.getElementById('vehiculo-marca').value.trim(),
+                modelo: document.getElementById('vehiculo-modelo').value.trim(),
+                kilometraje: String(kmRaw || '').trim(),
+                vin: document.getElementById('vehiculo-vin').value.trim(),
+                combustible: document.getElementById('vehiculo-combustible').value.trim(),
+                color: document.getElementById('vehiculo-color').value.trim(),
+              },
+              repuestos: repuestos.map(function(r) { return { descripcion: r.descripcion, cantidad: r.cantidad, valorUnitario: r.valorUnitario }; }),
+              manoDeObra: manoDeObra.map(function(m) { return { descripcion: m.descripcion, cantidad: m.cantidad, valorUnitario: m.valorUnitario }; }),
+              descuentos: descuentos,
+              abonoMonto: abonoMonto,
+              nota: nota || '',
+            },
             logo: logo || undefined,
           }),
         });
