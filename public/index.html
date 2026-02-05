@@ -192,8 +192,7 @@
     .btn-add:hover { background: #16a34a; }
     .btn-pdf {
       width: 100%;
-      max-width: 1280px;
-      margin: 1.5rem auto 0;
+      margin: 0;
       padding: 0.85rem 1.25rem;
       font-size: 1rem;
       font-weight: 600;
@@ -209,6 +208,34 @@
       box-shadow: 0 4px 8px rgba(37, 99, 235, 0.35);
     }
     .btn-pdf:disabled { opacity: 0.6; cursor: not-allowed; }
+    .actions-row {
+      width: 100%;
+      max-width: 1280px;
+      margin: 1.5rem auto 0;
+      display: flex;
+      gap: 0.75rem;
+    }
+    @media (max-width: 700px) {
+      .actions-row { flex-direction: column; }
+    }
+    .btn-retomar {
+      width: 100%;
+      margin: 0;
+      padding: 0.85rem 1.25rem;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(6, 182, 212, 0.25);
+    }
+    .btn-retomar:hover {
+      background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+      box-shadow: 0 4px 8px rgba(6, 182, 212, 0.3);
+    }
+    .btn-retomar:disabled { opacity: 0.6; cursor: not-allowed; }
     .message-wrap { margin-top: 1rem; }
     .error {
       padding: 0.75rem 1rem;
@@ -533,8 +560,10 @@
     </div>
   </section>
 
-  <button type="button" class="btn-pdf" id="btn-pdf">Generar PDF</button>
-  <button type="button" class="btn-secondary" id="btn-retomar" style="width:100%;max-width:1280px;margin:0.75rem auto 0;display:block;">Retomar Orden</button>
+  <div class="actions-row">
+    <button type="button" class="btn-retomar" id="btn-retomar">Retomar Orden</button>
+    <button type="button" class="btn-pdf" id="btn-pdf">Generar PDF</button>
+  </div>
   <input type="file" id="file-retomar" accept="application/pdf" style="display:none;">
   <div id="message" class="message-wrap"></div>
 
@@ -977,28 +1006,36 @@
     }
 
     function applyOrden(orden) {
-      orden = orden || {};
-      document.getElementById('presupuesto-num').value = String(orden.presupuestoNumero || '').trim();
+      // Un PDF puede no tener todos los campos: rellenamos lo que exista y lo demás queda vacío.
+      orden = orden && typeof orden === 'object' ? orden : {};
 
-      var c = orden.cliente || {};
-      document.getElementById('cliente-nombre').value = String(c.nombre || '').trim();
-      document.getElementById('cliente-rut').value = String(c.rut || '').trim();
-      document.getElementById('cliente-fono').value = String(c.fono || '').trim();
-      document.getElementById('cliente-direccion').value = String(c.direccion || '').trim();
+      function setValueById(id, value) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.value = String(value || '').trim();
+      }
+
+      setValueById('presupuesto-num', orden.presupuestoNumero);
+
+      var c = (orden && orden.cliente) || {};
+      setValueById('cliente-nombre', c.nombre);
+      setValueById('cliente-rut', c.rut);
+      setValueById('cliente-fono', c.fono);
       var fechaIso = String(c.fechaIso || '').trim();
-      if (fechaIso) document.getElementById('cliente-fecha').value = fechaIso;
+      if (fechaIso) setValueById('cliente-fecha', fechaIso);
 
-      var v = orden.vehiculo || {};
-      document.getElementById('vehiculo-patente').value = String(v.patente || '').trim();
-      document.getElementById('vehiculo-ano').value = String(v.ano || '').trim();
-      document.getElementById('vehiculo-marca').value = String(v.marca || '').trim();
-      document.getElementById('vehiculo-modelo').value = String(v.modelo || '').trim();
-      document.getElementById('vehiculo-vin').value = String(v.vin || '').trim();
-      document.getElementById('vehiculo-combustible').value = String(v.combustible || '').trim();
-      document.getElementById('vehiculo-color').value = String(v.color || '').trim();
+      var v = (orden && orden.vehiculo) || {};
+      setValueById('vehiculo-patente', v.patente);
+      setValueById('vehiculo-ano', v.ano);
+      setValueById('vehiculo-marca', v.marca);
+      setValueById('vehiculo-modelo', v.modelo);
+      setValueById('vehiculo-vin', v.vin);
+      setValueById('vehiculo-combustible', v.combustible);
+      setValueById('vehiculo-color', v.color);
+
       var kmInput = document.getElementById('vehiculo-kilometraje');
-      var kmRaw = String(v.kilometraje || '').replace(/\D/g, '');
       if (kmInput) {
+        var kmRaw = String(v.kilometraje || '').replace(/\D/g, '');
         if (!kmRaw) {
           kmInput.dataset.raw = '';
           kmInput.value = '';
@@ -1008,9 +1045,9 @@
         }
       }
 
-      setTablaDesdeItems(bodyRepuestos, orden.repuestos || []);
-      setTablaDesdeItems(bodyMano, orden.manoDeObra || []);
-      setDescuentosDesdeItems(orden.descuentos || []);
+      setTablaDesdeItems(bodyRepuestos, Array.isArray(orden.repuestos) ? orden.repuestos : []);
+      setTablaDesdeItems(bodyMano, Array.isArray(orden.manoDeObra) ? orden.manoDeObra : []);
+      setDescuentosDesdeItems(Array.isArray(orden.descuentos) ? orden.descuentos : []);
       setMoneyInput(abonoMontoInput, orden.abonoMonto || 0);
       if (notaInput) notaInput.value = String(orden.nota || '').trim();
       actualizarTotalPreview();
@@ -1111,7 +1148,6 @@
                 fechaIso: String(fechaIso || '').trim(),
                 rut: document.getElementById('cliente-rut').value.trim(),
                 fono: document.getElementById('cliente-fono').value.trim(),
-                direccion: document.getElementById('cliente-direccion').value.trim(),
               },
               vehiculo: {
                 patente: document.getElementById('vehiculo-patente').value.trim(),

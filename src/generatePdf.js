@@ -122,9 +122,7 @@ async function generatePresupuestoPdf(data, logoBuffer) {
   page.drawText('Fono', { x: col2X + 6, y, size: FONT_SIZE, font: fontBold, color: black });
   page.drawText(c.fono || '', { x: col2X + 38, y, size: FONT_SIZE, font, color: black });
   y -= LINE_HEIGHT;
-  page.drawText('Dirección', { x: MARGIN + 6, y, size: FONT_SIZE, font: fontBold, color: black });
-  page.drawText((c.direccion || '').slice(0, 55), { x: clienteValueX, y, size: FONT_SIZE, font, color: black });
-  y -= LINE_HEIGHT;
+  // Dirección eliminada (ya no se utiliza)
   page.drawText('Email', { x: MARGIN + 6, y, size: FONT_SIZE, font: fontBold, color: black });
   page.drawText(c.email || '', { x: clienteValueX, y, size: FONT_SIZE, font, color: black });
   y -= 14;
