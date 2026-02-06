@@ -87,6 +87,7 @@
       border-radius: 6px;
       font-size: 0.9rem;
       transition: border-color 0.15s, box-shadow 0.15s;
+      text-transform: uppercase;
     }
     .form-grid input:focus {
       outline: none;
@@ -118,6 +119,7 @@
       border: 1px solid #e2e8f0;
       border-radius: 5px;
       font-size: 0.875rem;
+      text-transform: uppercase;
     }
     td input:focus {
       outline: none;
@@ -270,6 +272,7 @@
       border: 1px solid #e2e8f0;
       border-radius: 6px;
       font-size: 0.9rem;
+      text-transform: uppercase;
     }
     .presupuesto-num-wrap input:focus {
       outline: none;
@@ -342,8 +345,9 @@
       border-radius: 6px;
       font-size: 0.9rem;
       text-align: right;
+      text-transform: uppercase;
     }
-    .discounts-extras input.note-input { text-align: left; }
+    .discounts-extras input.note-input { text-align: left; text-transform: none; }
     .discounts-extras input:focus {
       outline: none;
       border-color: #3b82f6;
@@ -395,6 +399,7 @@
       border: 1px solid #e2e8f0;
       border-radius: 6px;
       font-size: 0.9rem;
+      text-transform: uppercase;
     }
     .discount-row input:focus {
       outline: none;
@@ -596,6 +601,26 @@
       return isNaN(n) ? 0 : n;
     }
 
+    function forceUppercaseInput(inputEl) {
+      if (!inputEl) return;
+      // Nota final queda fuera (clase note-input)
+      if (inputEl.classList && inputEl.classList.contains('note-input')) return;
+      function applyUpper() {
+        var v = String(inputEl.value || '');
+        var up = v.toUpperCase();
+        if (v === up) return;
+        var start = inputEl.selectionStart;
+        var end = inputEl.selectionEnd;
+        inputEl.value = up;
+        try {
+          if (typeof start === 'number' && typeof end === 'number') inputEl.setSelectionRange(start, end);
+        } catch (_) {}
+      }
+      inputEl.addEventListener('input', applyUpper);
+      inputEl.addEventListener('blur', applyUpper);
+      applyUpper();
+    }
+
     (function initFechaHoy() {
       var fechaInput = document.getElementById('cliente-fecha');
       if (!fechaInput || fechaInput.type !== 'date') return;
@@ -606,6 +631,19 @@
       var dd = String(d.getDate()).padStart(2, '0');
       fechaInput.value = yyyy + '-' + mm + '-' + dd;
     })();
+
+    // Forzar MAYÚSCULAS en campos estáticos (excepto Nota)
+    forceUppercaseInput(presupuestoNumInput);
+    forceUppercaseInput(document.getElementById('cliente-nombre'));
+    forceUppercaseInput(document.getElementById('cliente-rut'));
+    forceUppercaseInput(document.getElementById('cliente-fono'));
+    forceUppercaseInput(document.getElementById('vehiculo-patente'));
+    forceUppercaseInput(document.getElementById('vehiculo-ano'));
+    forceUppercaseInput(document.getElementById('vehiculo-marca'));
+    forceUppercaseInput(document.getElementById('vehiculo-modelo'));
+    forceUppercaseInput(document.getElementById('vehiculo-vin'));
+    forceUppercaseInput(document.getElementById('vehiculo-combustible'));
+    forceUppercaseInput(document.getElementById('vehiculo-color'));
 
     function incrementPresupuestoString(raw) {
       var s = String(raw || '').trim();
@@ -752,6 +790,8 @@
       var delBtn = row.querySelector('.btn-del-descuento');
       var datalistEl = row.querySelector('#' + datalistId);
 
+      forceUppercaseInput(motivoInput);
+
       function formatMonto() {
         var v = parseValor(montoInput.value);
         montoInput.dataset.raw = v;
@@ -768,7 +808,7 @@
       motivoInput.addEventListener('blur', function() {
         updateMotivoDatalist(datalistEl, motivoInput.value);
         // Si el motivo coincide con un repuesto, sugerimos el monto (solo si aún no hay monto)
-        var motivo = motivoInput.value.trim();
+        var motivo = motivoInput.value.trim().toUpperCase();
         var repTotal = getRepuestoTotalByDescripcion(motivo);
         var curr = montoInput && montoInput.dataset.raw !== undefined ? parseInt(montoInput.dataset.raw, 10) : 0;
         if ((isNaN(curr) || curr <= 0) && repTotal > 0) {
@@ -801,7 +841,7 @@
         var motivoEl = row.querySelector('.descuento-motivo');
         var monto = montoEl && montoEl.dataset.raw !== undefined ? parseInt(montoEl.dataset.raw, 10) : 0;
         if (isNaN(monto) || monto < 0) monto = 0;
-        var motivo = motivoEl ? motivoEl.value.trim() : '';
+        var motivo = motivoEl ? motivoEl.value.trim().toUpperCase() : '';
         if (monto > 0) out.push({ monto: monto, motivo: motivo });
       });
       return out;
@@ -868,6 +908,7 @@
       var cantInput = tr.querySelector('input[name="cant"]');
       var valorInput = tr.querySelector('input[name="valor"]');
       var descInput = tr.querySelector('input[name="desc"]');
+      forceUppercaseInput(descInput);
       valorInput.addEventListener('input', function() {
         var v = parseValor(this.value);
         this.dataset.raw = v;
@@ -922,7 +963,7 @@
     function leerFilas(tbody) {
       var items = [];
       tbody.querySelectorAll('tr').forEach(function(tr) {
-        var desc = tr.querySelector('input[name="desc"]').value.trim();
+        var desc = tr.querySelector('input[name="desc"]').value.trim().toUpperCase();
         var cant = parseInt(tr.querySelector('input[name="cant"]').value, 10) || 0;
         var valorEl = tr.querySelector('input[name="valor"]');
         var valorUnit = valorEl && valorEl.dataset.raw !== undefined ? parseInt(valorEl.dataset.raw, 10) : parseValor(valorEl ? valorEl.value : '');
@@ -946,10 +987,10 @@
       var fechaInput = document.getElementById('cliente-fecha');
       var fechaValue = fechaInput.type === 'date' ? formatFechaParaPdf(fechaInput.value) : fechaInput.value.trim();
       return {
-        nombre: document.getElementById('cliente-nombre').value.trim(),
+        nombre: document.getElementById('cliente-nombre').value.trim().toUpperCase(),
         fecha: fechaValue,
-        rut: document.getElementById('cliente-rut').value.trim(),
-        fono: document.getElementById('cliente-fono').value.trim(),
+        rut: document.getElementById('cliente-rut').value.trim().toUpperCase(),
+        fono: document.getElementById('cliente-fono').value.trim().toUpperCase(),
       };
     }
     function leerVehiculo() {
@@ -958,14 +999,14 @@
         ? ''
         : (kmInput.dataset.raw !== undefined && kmInput.dataset.raw !== '' ? String(kmInput.dataset.raw) : String(parseValor(kmInput.value)));
       return {
-        patente: document.getElementById('vehiculo-patente').value.trim(),
-        ano: document.getElementById('vehiculo-ano').value.trim(),
-        marca: document.getElementById('vehiculo-marca').value.trim(),
-        modelo: document.getElementById('vehiculo-modelo').value.trim(),
+        patente: document.getElementById('vehiculo-patente').value.trim().toUpperCase(),
+        ano: document.getElementById('vehiculo-ano').value.trim().toUpperCase(),
+        marca: document.getElementById('vehiculo-marca').value.trim().toUpperCase(),
+        modelo: document.getElementById('vehiculo-modelo').value.trim().toUpperCase(),
         kilometraje: kilometraje,
-        vin: document.getElementById('vehiculo-vin').value.trim(),
-        combustible: document.getElementById('vehiculo-combustible').value.trim(),
-        color: document.getElementById('vehiculo-color').value.trim(),
+        vin: document.getElementById('vehiculo-vin').value.trim().toUpperCase(),
+        combustible: document.getElementById('vehiculo-combustible').value.trim().toUpperCase(),
+        color: document.getElementById('vehiculo-color').value.trim().toUpperCase(),
       };
     }
 
@@ -1000,7 +1041,7 @@
         var descInput = tr.querySelector('input[name="desc"]');
         var cantInput = tr.querySelector('input[name="cant"]');
         var valorInput = tr.querySelector('input[name="valor"]');
-        if (descInput) descInput.value = String((it && it.descripcion) || '').trim();
+        if (descInput) descInput.value = String((it && it.descripcion) || '').trim().toUpperCase();
         if (cantInput) cantInput.value = String(parseInt(it && it.cantidad, 10) || 1);
         var unit = parseInt(it && it.valorUnitario, 10);
         if (isNaN(unit) || unit < 0) unit = 0;
@@ -1033,7 +1074,7 @@
           montoInput.dataset.raw = String(monto);
           montoInput.value = monto === 0 ? '' : formatMiles(monto);
         }
-        if (motivoInput) motivoInput.value = String((d && d.motivo) || '').trim();
+        if (motivoInput) motivoInput.value = String((d && d.motivo) || '').trim().toUpperCase();
         discountsList.appendChild(row);
       });
     }
@@ -1045,7 +1086,7 @@
       function setValueById(id, value) {
         var el = document.getElementById(id);
         if (!el) return;
-        el.value = String(value || '').trim();
+        el.value = String(value || '').trim().toUpperCase();
       }
 
       setValueById('presupuesto-num', orden.presupuestoNumero);
@@ -1179,20 +1220,20 @@
               version: 1,
               presupuestoNumero: document.getElementById('presupuesto-num').value.trim(),
               cliente: {
-                nombre: document.getElementById('cliente-nombre').value.trim(),
+                nombre: document.getElementById('cliente-nombre').value.trim().toUpperCase(),
                 fechaIso: String(fechaIso || '').trim(),
-                rut: document.getElementById('cliente-rut').value.trim(),
-                fono: document.getElementById('cliente-fono').value.trim(),
+                rut: document.getElementById('cliente-rut').value.trim().toUpperCase(),
+                fono: document.getElementById('cliente-fono').value.trim().toUpperCase(),
               },
               vehiculo: {
-                patente: document.getElementById('vehiculo-patente').value.trim(),
-                ano: document.getElementById('vehiculo-ano').value.trim(),
-                marca: document.getElementById('vehiculo-marca').value.trim(),
-                modelo: document.getElementById('vehiculo-modelo').value.trim(),
+                patente: document.getElementById('vehiculo-patente').value.trim().toUpperCase(),
+                ano: document.getElementById('vehiculo-ano').value.trim().toUpperCase(),
+                marca: document.getElementById('vehiculo-marca').value.trim().toUpperCase(),
+                modelo: document.getElementById('vehiculo-modelo').value.trim().toUpperCase(),
                 kilometraje: String(kmRaw || '').trim(),
-                vin: document.getElementById('vehiculo-vin').value.trim(),
-                combustible: document.getElementById('vehiculo-combustible').value.trim(),
-                color: document.getElementById('vehiculo-color').value.trim(),
+                vin: document.getElementById('vehiculo-vin').value.trim().toUpperCase(),
+                combustible: document.getElementById('vehiculo-combustible').value.trim().toUpperCase(),
+                color: document.getElementById('vehiculo-color').value.trim().toUpperCase(),
               },
               repuestos: repuestos.map(function(r) { return { descripcion: r.descripcion, cantidad: r.cantidad, valorUnitario: r.valorUnitario }; }),
               manoDeObra: manoDeObra.map(function(m) { return { descripcion: m.descripcion, cantidad: m.cantidad, valorUnitario: m.valorUnitario }; }),
