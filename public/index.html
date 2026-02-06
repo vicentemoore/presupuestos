@@ -223,63 +223,76 @@
     }
     .btn-add:hover { background: #16a34a; }
     .btn-pdf {
-      width: 100%;
+      width: auto;
+      flex: 1 1 0;
       margin: 0;
-      padding: 0.85rem 1.25rem;
+      min-height: 52px;
+      padding: 0.9rem 1.1rem;
       font-size: 1rem;
       font-weight: 600;
       color: #fff;
       background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       cursor: pointer;
       box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 0.6rem;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
     }
     .btn-pdf:hover {
       background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
       box-shadow: 0 4px 8px rgba(37, 99, 235, 0.35);
+      transform: translateY(-1px);
     }
+    .btn-pdf:active { transform: translateY(0); filter: brightness(0.98); }
     .btn-pdf:disabled { opacity: 0.6; cursor: not-allowed; }
     .actions-row {
       width: 100%;
-      max-width: 1280px;
+      max-width: 860px;
       margin: 1.5rem auto 0;
       display: flex;
       gap: 0.75rem;
+      align-items: stretch;
+      justify-content: center;
     }
     @media (max-width: 700px) {
       .actions-row { flex-direction: column; }
     }
     .btn-retomar {
-      width: 100%;
+      width: auto;
+      flex: 1 1 0;
       margin: 0;
-      padding: 0.85rem 1.25rem;
+      min-height: 52px;
+      padding: 0.9rem 1.1rem;
       font-size: 1rem;
       font-weight: 600;
       color: #fff;
       background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       cursor: pointer;
       box-shadow: 0 2px 4px rgba(6, 182, 212, 0.25);
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 0.6rem;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
     }
     .btn-retomar:hover {
       background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
       box-shadow: 0 4px 8px rgba(6, 182, 212, 0.3);
+      transform: translateY(-1px);
     }
+    .btn-retomar:active { transform: translateY(0); filter: brightness(0.98); }
     .btn-retomar:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn-pdf svg, .btn-retomar svg {
       width: 18px;
       height: 18px;
       flex-shrink: 0;
+      opacity: 0.95;
     }
     .message-wrap { margin-top: 1rem; }
     .error {
@@ -955,7 +968,7 @@
     function filaTabla() {
       var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td class="col-desc"><input type="text" name="desc" placeholder="Descripción"></td>' +
+        '<td class="col-desc"><input type="text" name="desc"></td>' +
         '<td class="col-cant"><input type="number" name="cant" min="0" value="1" placeholder="0"></td>' +
         '<td class="col-valor"><div class="col-valor-cell"><span class="valor-prefix">$</span><input type="text" name="valor" placeholder="0" data-raw="0"></div></td>' +
         '<td class="col-total-cell" tabindex="-1" aria-readonly="true"></td>' +
