@@ -89,6 +89,36 @@
       transition: border-color 0.15s, box-shadow 0.15s;
       text-transform: uppercase;
     }
+    .radio-group {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+      padding: 0.35rem 0;
+    }
+    .radio-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.5rem 0.65rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      background: #f8fafc;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.9rem;
+      color: #0f172a;
+    }
+    .radio-pill input {
+      width: 1rem;
+      height: 1rem;
+      margin: 0;
+      accent-color: #2563eb;
+    }
+    .radio-pill:has(input:checked) {
+      border-color: #2563eb;
+      background: rgba(37, 99, 235, 0.08);
+    }
     .form-grid input:focus {
       outline: none;
       border-color: #3b82f6;
@@ -484,8 +514,17 @@
           <input type="text" id="vehiculo-vin" value="">
         </div>
         <div>
-          <label for="vehiculo-combustible">Combustible</label>
-          <input type="text" id="vehiculo-combustible" value="">
+          <label>Combustible</label>
+          <div class="radio-group" role="radiogroup" aria-label="Combustible">
+            <label class="radio-pill">
+              <input type="radio" name="vehiculo-combustible" value="DIESEL">
+              Diesel
+            </label>
+            <label class="radio-pill">
+              <input type="radio" name="vehiculo-combustible" value="BENCINA">
+              Bencina
+            </label>
+          </div>
         </div>
         <div>
           <label for="vehiculo-color">Color</label>
@@ -642,7 +681,6 @@
     forceUppercaseInput(document.getElementById('vehiculo-marca'));
     forceUppercaseInput(document.getElementById('vehiculo-modelo'));
     forceUppercaseInput(document.getElementById('vehiculo-vin'));
-    forceUppercaseInput(document.getElementById('vehiculo-combustible'));
     forceUppercaseInput(document.getElementById('vehiculo-color'));
 
     function incrementPresupuestoString(raw) {
@@ -998,6 +1036,8 @@
       var kilometraje = kmInput.value.trim() === ''
         ? ''
         : (kmInput.dataset.raw !== undefined && kmInput.dataset.raw !== '' ? String(kmInput.dataset.raw) : String(parseValor(kmInput.value)));
+      var combSel = document.querySelector('input[name="vehiculo-combustible"]:checked');
+      var combustible = combSel ? String(combSel.value || '').trim().toUpperCase() : '';
       return {
         patente: document.getElementById('vehiculo-patente').value.trim().toUpperCase(),
         ano: document.getElementById('vehiculo-ano').value.trim().toUpperCase(),
@@ -1005,7 +1045,7 @@
         modelo: document.getElementById('vehiculo-modelo').value.trim().toUpperCase(),
         kilometraje: kilometraje,
         vin: document.getElementById('vehiculo-vin').value.trim().toUpperCase(),
-        combustible: document.getElementById('vehiculo-combustible').value.trim().toUpperCase(),
+        combustible: combustible,
         color: document.getElementById('vehiculo-color').value.trim().toUpperCase(),
       };
     }
@@ -1104,7 +1144,11 @@
       setValueById('vehiculo-marca', v.marca);
       setValueById('vehiculo-modelo', v.modelo);
       setValueById('vehiculo-vin', v.vin);
-      setValueById('vehiculo-combustible', v.combustible);
+      // Combustible (radios)
+      var comb = String(v.combustible || '').trim().toUpperCase();
+      document.querySelectorAll('input[name="vehiculo-combustible"]').forEach(function(r) {
+        r.checked = comb && String(r.value || '').toUpperCase() === comb;
+      });
       setValueById('vehiculo-color', v.color);
 
       var kmInput = document.getElementById('vehiculo-kilometraje');
@@ -1232,7 +1276,7 @@
                 modelo: document.getElementById('vehiculo-modelo').value.trim().toUpperCase(),
                 kilometraje: String(kmRaw || '').trim(),
                 vin: document.getElementById('vehiculo-vin').value.trim().toUpperCase(),
-                combustible: document.getElementById('vehiculo-combustible').value.trim().toUpperCase(),
+                combustible: (document.querySelector('input[name="vehiculo-combustible"]:checked') || {}).value || '',
                 color: document.getElementById('vehiculo-color').value.trim().toUpperCase(),
               },
               repuestos: repuestos.map(function(r) { return { descripcion: r.descripcion, cantidad: r.cantidad, valorUnitario: r.valorUnitario }; }),
