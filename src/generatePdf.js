@@ -21,17 +21,17 @@ const CONTACTO_WIDTH = 185;
 const CONTACTO_PAD = 8;
 const black = rgb(0, 0, 0);
 
-const FOOTER_TEXT = '*la validez de la cotización es de 7 días*';
+const FOOTER_TEXT = '*LA VALIDEZ DE LA COTIZACIÓN ES DE 7 DÍAS*';
 const FOOTER_FONT_SIZE = 9;
 const FOOTER_Y = 16;
 
-const BANK_SECTION_TITLE = 'Cuenta para depósitos de repuestos:';
+const BANK_SECTION_TITLE = 'CUENTA PARA DEPÓSITOS DE REPUESTOS:';
 const BANK_LINES = [
-  'Luz Soto',
+  'LUZ SOTO',
   '12.274.838-3',
-  'Banco de Chile',
-  'Cuenta Vista 00-023-25250-80',
-  'Joaquinmirand22@hotmail.com',
+  'BANCO DE CHILE',
+  'CUENTA VISTA 00-023-25250-80',
+  'JOAQUINMIRAND22@HOTMAIL.COM',
 ];
 const BANK_FONT_SIZE_TITLE = 9;
 const BANK_FONT_SIZE_LINE = 9;

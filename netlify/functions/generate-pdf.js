@@ -6,14 +6,16 @@ const { generatePresupuestoPdf } = require('./lib/generatePdf');
  * Valor se interpreta como total de la línea; totalPresupuesto = suma de todos.
  */
 function payloadToPdfData(body) {
+  const upperTrim = (val) => String(val || '').trim().toUpperCase();
+
   const repuestos = (body.repuestos || []).map((r) => ({
-    descripcion: String(r.descripcion || '').trim(),
+    descripcion: upperTrim(r.descripcion),
     cantidad: Math.max(1, parseInt(r.cantidad, 10) || 1),
     valorTotal: Number(r.valor) || 0,
   })).filter((r) => r.descripcion && r.valorTotal > 0);
 
   const manoDeObra = (body.manoDeObra || []).map((m) => ({
-    descripcion: String(m.descripcion || '').trim(),
+    descripcion: upperTrim(m.descripcion),
     cantidad: Math.max(1, parseInt(m.cantidad, 10) || 1),
     valorTotal: Number(m.valor) || 0,
   })).filter((m) => m.descripcion && m.valorTotal > 0);
@@ -30,7 +32,7 @@ function payloadToPdfData(body) {
 
   const descuentosSanitized = descuentosInput.map((d) => ({
     monto: Math.max(0, parseInt(d && d.monto, 10) || 0),
-    motivo: String((d && d.motivo) || '').trim(),
+    motivo: upperTrim((d && d.motivo) || ''),
   })).filter((d) => d.monto > 0);
 
   // Evitar que el total quede negativo: recortar descuentos por orden hasta agotar subtotal
@@ -71,24 +73,24 @@ function payloadToPdfData(body) {
     abonoMonto,
     aPagarMonto,
     cliente: {
-      nombre: String(cliente.nombre || '').trim(),
-      fecha: String(cliente.fecha || '').trim(),
-      rut: String(cliente.rut || '').trim(),
-      fono: String(cliente.fono || '').trim(),
+      nombre: upperTrim(cliente.nombre),
+      fecha: upperTrim(cliente.fecha),
+      rut: upperTrim(cliente.rut),
+      fono: upperTrim(cliente.fono),
     },
     vehiculo: {
-      patente: String(vehiculo.patente || '').trim(),
-      ano: String(vehiculo.ano || '').trim(),
-      marca: String(vehiculo.marca || '').trim(),
-      modelo: String(vehiculo.modelo || '').trim(),
+      patente: upperTrim(vehiculo.patente),
+      ano: upperTrim(vehiculo.ano),
+      marca: upperTrim(vehiculo.marca),
+      modelo: upperTrim(vehiculo.modelo),
       kilometraje: String(vehiculo.kilometraje || '').trim(),
-      vin: String(vehiculo.vin || '').trim(),
-      combustible: String(vehiculo.combustible || '').trim(),
-      color: String(vehiculo.color || '').trim(),
+      vin: upperTrim(vehiculo.vin),
+      combustible: upperTrim(vehiculo.combustible),
+      color: upperTrim(vehiculo.color),
     },
     logoBuffer,
-    presupuestoNumero: String(body.presupuestoNumero || '').trim(),
-    nota: String(body.nota || '').trim(),
+    presupuestoNumero: upperTrim(body.presupuestoNumero),
+    nota: String(body.nota || '').trim(), // Nota final NO en mayúsculas
   };
 }
 
