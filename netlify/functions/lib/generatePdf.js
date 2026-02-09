@@ -479,26 +479,24 @@ async function generatePresupuestoPdf(data, logoBuffer, orden) {
   // Un poco más de aire antes del resumen (Subtotal/Descuentos/Abono/A pagar/Total)
   y -= 14;
 
-  // Resumen: Subtotal/Descuentos/Abono (si aplican) y siempre "Saldo a pagar" = total - abono
-  const subtotal = typeof data.subtotalPresupuesto === 'number' ? data.subtotalPresupuesto : Number(data.totalPresupuesto) || 0;
+  // Resumen: Subtotal (mano de obra + repuestos) siempre primero; luego Descuentos/Abono (si aplican) y "Saldo a pagar"
+  const subtotal = typeof data.subtotalPresupuesto === 'number' ? data.subtotalPresupuesto : (Number(data.totalRepuestos) || 0) + (Number(data.totalManoDeObra) || 0);
   const descuentos = Array.isArray(data.descuentos) ? data.descuentos : [];
   const hasDescuentos = descuentos.length > 0;
   const abonoMonto = Math.max(0, parseInt(data.abonoMonto, 10) || 0);
   const totalOrden = Number(data.totalPresupuesto) || 0;
   const saldoAPagar = Math.max(0, totalOrden - abonoMonto);
   const summaryRows = [];
-  if (hasDescuentos || abonoMonto > 0) {
-    if (hasDescuentos) {
-      summaryRows.push({ label: 'Subtotal', value: formatMoneda(subtotal), fontLeft: fontBold, fontRight: font });
-      descuentos.forEach((d) => {
-        const motivo = String((d && d.motivo) || '').trim();
-        const label = motivo ? 'Descuento (' + motivo + ')' : 'Descuento';
-        const monto = Math.max(0, parseInt(d && d.monto, 10) || 0);
-        summaryRows.push({ label, value: formatMoneda(monto), fontLeft: fontBold, fontRight: font });
-      });
-    }
-    if (abonoMonto > 0) summaryRows.push({ label: 'Abono', value: formatMoneda(abonoMonto), fontLeft: fontBold, fontRight: font });
+  summaryRows.push({ label: 'Subtotal', value: formatMoneda(subtotal), fontLeft: fontBold, fontRight: font });
+  if (hasDescuentos) {
+    descuentos.forEach((d) => {
+      const motivo = String((d && d.motivo) || '').trim();
+      const label = motivo ? 'Descuento (' + motivo + ')' : 'Descuento';
+      const monto = Math.max(0, parseInt(d && d.monto, 10) || 0);
+      summaryRows.push({ label, value: formatMoneda(monto), fontLeft: fontBold, fontRight: font });
+    });
   }
+  if (abonoMonto > 0) summaryRows.push({ label: 'Abono', value: formatMoneda(abonoMonto), fontLeft: fontBold, fontRight: font });
   summaryRows.push({ label: 'Saldo a pagar', value: formatMoneda(saldoAPagar), fontLeft: fontBold, fontRight: fontBold, thick: true });
 
   const summaryHeight = summaryRows.length * ROW_HEIGHT;
