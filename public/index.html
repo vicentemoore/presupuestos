@@ -1170,11 +1170,7 @@
       setVal('cliente-nombre', c.nombre);
       setVal('cliente-rut', c.rut);
       setVal('cliente-fono', c.fono);
-      var fechaIso = String(c.fechaIso || '').trim();
-      if (fechaIso) {
-        var fe = document.getElementById('cliente-fecha');
-        if (fe) fe.value = fechaIso;
-      }
+      setClienteFechaHoy();
       setVal('vehiculo-patente', v.patente);
       setVal('vehiculo-ano', v.ano);
       setVal('vehiculo-marca', v.marca);
@@ -1198,15 +1194,20 @@
       }
     }
 
+    function setClienteFechaHoy() {
+      var fe = document.getElementById('cliente-fecha');
+      if (!fe || fe.type !== 'date') return;
+      var d = new Date();
+      fe.value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
     function buildClienteVehiculoParaNube() {
-      var fechaIso = (document.getElementById('cliente-fecha') || {}).value || '';
       var kmInput = document.getElementById('vehiculo-kilometraje');
       var kmRaw = kmInput && kmInput.dataset.raw !== undefined ? String(kmInput.dataset.raw) : '';
       var combSel = document.querySelector('input[name="vehiculo-combustible"]:checked');
       return {
         cliente: {
           nombre: document.getElementById('cliente-nombre').value.trim().toUpperCase(),
-          fechaIso: String(fechaIso || '').trim(),
           rut: document.getElementById('cliente-rut').value.trim().toUpperCase(),
           fono: document.getElementById('cliente-fono').value.trim().toUpperCase(),
         },

@@ -89,7 +89,9 @@ exports.handler = async (event) => {
       return json(400, { ok: false, error: 'Patente inválida (mín. 4 caracteres alfanuméricos)' });
     }
 
-    const cliente = body.cliente && typeof body.cliente === 'object' ? body.cliente : {};
+    const rawCliente = body.cliente && typeof body.cliente === 'object' ? body.cliente : {};
+    const cliente = { ...rawCliente };
+    delete cliente.fechaIso;
 
     // Reemplaza todo el registro: patente nueva → insert; patente existente → actualiza cliente/vehículo
     const row = {

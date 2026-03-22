@@ -42,6 +42,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 - Al **generar un PDF** con éxito, se guarda o actualiza cliente + vehículo asociados a la **patente** (normalizada: solo letras y números en mayúsculas).
 - **Patente nueva:** se crea fila. **Patente ya existente:** se **reemplazan** por completo `cliente` y `vehiculo` con lo que venga en el formulario (última orden guardada).
+- La **fecha de la orden** no se guarda en la nube: cada presupuesto usa la fecha del día en el formulario; al elegir una patente sugerida se pone la fecha de **hoy**.
 - Al **escribir la patente**, se muestran sugerencias desde la base (prefijo).
 - Si **no** configuraste Supabase en Netlify, la función responde 503 y la web sigue funcionando sin sugerencias ni guardado.
 
