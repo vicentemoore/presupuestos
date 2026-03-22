@@ -144,6 +144,48 @@
       border-color: #3b82f6;
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
     }
+    .patente-field-wrap {
+      position: relative;
+    }
+    .patente-suggest {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100%;
+      margin: 2px 0 0;
+      padding: 0;
+      list-style: none;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.12);
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 30;
+    }
+    .patente-suggest li {
+      padding: 0.5rem 0.65rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .patente-suggest li:last-child { border-bottom: none; }
+    .patente-suggest li:hover,
+    .patente-suggest li.is-active {
+      background: #eff6ff;
+    }
+    .patente-suggest .patente-sub {
+      display: block;
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 0.15rem;
+    }
+    .hint-patente-nube {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin: 0.35rem 0 0;
+      line-height: 1.35;
+    }
     .form-grid input[type="number"] { text-align: right; }
     .form-grid .full { grid-column: 1 / -1; }
     table {
@@ -535,9 +577,11 @@
         Datos del Vehículo
       </h2>
       <div class="form-grid">
-        <div>
+        <div class="patente-field-wrap">
           <label for="vehiculo-patente">Patente</label>
-          <input type="text" id="vehiculo-patente" value="">
+          <input type="text" id="vehiculo-patente" value="" autocomplete="off" aria-autocomplete="list" aria-controls="patente-suggest" aria-expanded="false">
+          <ul id="patente-suggest" class="patente-suggest" role="listbox" hidden></ul>
+          <p class="hint-patente-nube">Cada PDF generado con éxito guarda o actualiza en la nube (Supabase) los datos de cliente y vehículo de esa patente.</p>
         </div>
         <div>
           <label for="vehiculo-ano">Año</label>
@@ -686,6 +730,7 @@
     const abonoMontoInput = document.getElementById('abono-monto');
     const notaInput = document.getElementById('nota');
     const presupuestoNumInput = document.getElementById('presupuesto-num');
+    const patenteSuggestEl = document.getElementById('patente-suggest');
 
     const LS_LAST_PRESUPUESTO = 'presupuestos:lastGeneratedPresupuesto';
     const LS_SKIP_NEXT_INCREMENT = 'presupuestos:skipNextPresupuestoIncrement';
@@ -1110,6 +1155,165 @@
       };
     }
 
+    function apiPatenteUrl() {
+      return window.location.origin + '/.netlify/functions/patente-store';
+    }
+
+    function aplicarRegistroPatente(row) {
+      if (!row) return;
+      var c = row.cliente || {};
+      var v = row.vehiculo || {};
+      function setVal(id, val) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.value = String(val || '').trim().toUpperCase();
+      }
+      setVal('cliente-nombre', c.nombre);
+      setVal('cliente-rut', c.rut);
+      setVal('cliente-fono', c.fono);
+      var fechaIso = String(c.fechaIso || '').trim();
+      if (fechaIso) {
+        var fe = document.getElementById('cliente-fecha');
+        if (fe) fe.value = fechaIso;
+      }
+      setVal('vehiculo-patente', v.patente);
+      setVal('vehiculo-ano', v.ano);
+      setVal('vehiculo-marca', v.marca);
+      setVal('vehiculo-modelo', v.modelo);
+      setVal('vehiculo-vin', v.vin);
+      setVal('vehiculo-color', v.color);
+      var comb = String(v.combustible || '').trim().toUpperCase();
+      document.querySelectorAll('input[name="vehiculo-combustible"]').forEach(function(r) {
+        r.checked = !!(comb && String(r.value || '').toUpperCase() === comb);
+      });
+      var kmInput = document.getElementById('vehiculo-kilometraje');
+      if (kmInput) {
+        var kmRaw = String(v.kilometraje || '').replace(/\D/g, '');
+        if (!kmRaw) {
+          kmInput.dataset.raw = '';
+          kmInput.value = '';
+        } else {
+          kmInput.dataset.raw = kmRaw;
+          kmInput.value = formatMiles(kmRaw);
+        }
+      }
+    }
+
+    function buildClienteVehiculoParaNube() {
+      var fechaIso = (document.getElementById('cliente-fecha') || {}).value || '';
+      var kmInput = document.getElementById('vehiculo-kilometraje');
+      var kmRaw = kmInput && kmInput.dataset.raw !== undefined ? String(kmInput.dataset.raw) : '';
+      var combSel = document.querySelector('input[name="vehiculo-combustible"]:checked');
+      return {
+        cliente: {
+          nombre: document.getElementById('cliente-nombre').value.trim().toUpperCase(),
+          fechaIso: String(fechaIso || '').trim(),
+          rut: document.getElementById('cliente-rut').value.trim().toUpperCase(),
+          fono: document.getElementById('cliente-fono').value.trim().toUpperCase(),
+        },
+        vehiculo: {
+          patente: document.getElementById('vehiculo-patente').value.trim().toUpperCase(),
+          ano: document.getElementById('vehiculo-ano').value.trim().toUpperCase(),
+          marca: document.getElementById('vehiculo-marca').value.trim().toUpperCase(),
+          modelo: document.getElementById('vehiculo-modelo').value.trim().toUpperCase(),
+          kilometraje: String(kmRaw || '').trim(),
+          vin: document.getElementById('vehiculo-vin').value.trim().toUpperCase(),
+          combustible: combSel ? String(combSel.value || '').trim().toUpperCase() : '',
+          color: document.getElementById('vehiculo-color').value.trim().toUpperCase(),
+        },
+      };
+    }
+
+    function hidePatenteSuggest() {
+      if (!patenteSuggestEl) return;
+      patenteSuggestEl.hidden = true;
+      patenteSuggestEl.innerHTML = '';
+      var pi = document.getElementById('vehiculo-patente');
+      if (pi) pi.setAttribute('aria-expanded', 'false');
+    }
+
+    function refreshPatenteSuggest(q) {
+      if (!patenteSuggestEl) return;
+      q = String(q || '').replace(/[^A-Z0-9]/gi, '').toUpperCase();
+      if (q.length < 1) {
+        hidePatenteSuggest();
+        return;
+      }
+      fetch(apiPatenteUrl() + '?q=' + encodeURIComponent(q))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data || !data.ok || !Array.isArray(data.items)) {
+            hidePatenteSuggest();
+            return;
+          }
+          if (data.items.length === 0) {
+            hidePatenteSuggest();
+            return;
+          }
+          patenteSuggestEl.hidden = false;
+          var pi = document.getElementById('vehiculo-patente');
+          if (pi) pi.setAttribute('aria-expanded', 'true');
+          patenteSuggestEl.innerHTML = '';
+          data.items.forEach(function(item, idx) {
+            var li = document.createElement('li');
+            li.setAttribute('role', 'option');
+            li.id = 'patente-opt-' + idx;
+            var v = item.vehiculo || {};
+            var main = document.createElement('span');
+            main.textContent = item.patente || '';
+            var sub = document.createElement('span');
+            sub.className = 'patente-sub';
+            sub.textContent = [v.marca, v.modelo].filter(Boolean).join(' ') || '—';
+            li.appendChild(main);
+            li.appendChild(sub);
+            li.addEventListener('mousedown', function(e) {
+              e.preventDefault();
+              aplicarRegistroPatente(item);
+              hidePatenteSuggest();
+            });
+            patenteSuggestEl.appendChild(li);
+          });
+        })
+        .catch(function() { hidePatenteSuggest(); });
+    }
+
+    function guardarPatenteEnNube() {
+      var payload = buildClienteVehiculoParaNube();
+      var pat = String(payload.vehiculo.patente || '').replace(/[^A-Z0-9]/gi, '');
+      if (pat.length < 4) return Promise.resolve();
+      return fetch(apiPatenteUrl(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).then(function(res) {
+        if (res.status === 503) return null;
+        if (!res.ok) return res.json().catch(function() { return {}; }).then(function() { return null; });
+        return res.json();
+      }).catch(function() { return null; });
+    }
+
+    var patenteSearchTimer = null;
+    var patenteBlurTimer = null;
+    (function initPatenteNube() {
+      var input = document.getElementById('vehiculo-patente');
+      if (!input || !patenteSuggestEl) return;
+      input.addEventListener('input', function() {
+        clearTimeout(patenteSearchTimer);
+        patenteSearchTimer = setTimeout(function() {
+          refreshPatenteSuggest(input.value);
+        }, 280);
+      });
+      input.addEventListener('blur', function() {
+        patenteBlurTimer = setTimeout(hidePatenteSuggest, 200);
+      });
+      input.addEventListener('focus', function() {
+        clearTimeout(patenteBlurTimer);
+        if (String(input.value || '').replace(/[^A-Z0-9]/gi, '').length >= 1) {
+          refreshPatenteSuggest(input.value);
+        }
+      });
+    })();
+
     function showMessage(text, isError) {
       message.innerHTML = '<div class="' + (isError ? 'error' : 'success') + '">' + text + '</div>';
     }
@@ -1371,6 +1575,7 @@
           localStorage.removeItem(LS_SKIP_NEXT_INCREMENT);
         } catch (_) {}
         showMessage('PDF generado correctamente.', false);
+        guardarPatenteEnNube();
       } catch (err) {
         showMessage(err.message || 'Error al generar el PDF.', true);
       } finally {
