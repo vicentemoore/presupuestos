@@ -50,13 +50,10 @@ const BANK_FONT_SIZE_LINE = 9;
 const BANK_LINE_HEIGHT = 11;
 const BANK_BOTTOM_PAD = 30; // separación sobre el footer de 7 días
 
-// Altura total reservada para zona bancaria + footer (para paginación)
+// Altura total reservada para zona bancaria + footer
 const BANK_SECTION_HEIGHT = BANK_BOTTOM_PAD + (BANK_LINES.length + 1) * BANK_LINE_HEIGHT + 10;
-const FOOTER_RESERVED_HEIGHT = FOOTER_Y + BANK_SECTION_HEIGHT;
-// Margen mínimo donde el contenido puede llegar en la primera página
-const MIN_Y_FIRST_PAGE = FOOTER_RESERVED_HEIGHT + 20;
-// Margen mínimo para páginas siguientes (solo footer, sin datos bancarios)
-const MIN_Y_OTHER_PAGES = FOOTER_Y + 30;
+// Margen mínimo donde el contenido puede llegar (solo footer, más compacto)
+const MIN_Y_CONTENT = FOOTER_Y + 25;
 
 const ORDEN_PREFIX = 'PRESUPUESTOS_ORDEN_V1:';
 
@@ -139,15 +136,25 @@ function drawFooterOnAllPages(doc, font) {
   }
 }
 
-function drawBankInfoOnLastPage(doc, fontBold, font) {
+function drawBankInfoOnLastPage(doc, fontBold, font, lastContentY) {
   const pages = doc.getPages();
   if (!pages || pages.length === 0) return;
-  // Dibujar en la ÚLTIMA página para evitar superposición con contenido
-  const page = pages[pages.length - 1];
+  
+  // Calcular altura necesaria para datos bancarios
+  const bankInfoTop = FOOTER_Y + BANK_BOTTOM_PAD + (BANK_LINES.length * BANK_LINE_HEIGHT) + 2;
+  const bankInfoHeight = BANK_SECTION_HEIGHT;
+  
+  // Verificar si hay espacio suficiente en la última página
+  // Si el contenido llegó muy abajo, crear una página nueva para los datos bancarios
+  let page = pages[pages.length - 1];
+  if (lastContentY < bankInfoTop + bankInfoHeight + 10) {
+    page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+  }
+  
   const { width } = page.getSize();
 
   // Dibujar centrado, por encima del footer de 7 días
-  let y = FOOTER_Y + BANK_BOTTOM_PAD + (BANK_LINES.length * BANK_LINE_HEIGHT) + 2;
+  let y = bankInfoTop;
 
   const titleWidth = fontBold.widthOfTextAtSize(BANK_SECTION_TITLE, BANK_FONT_SIZE_TITLE);
   page.drawText(BANK_SECTION_TITLE, {
@@ -175,19 +182,16 @@ function drawBankInfoOnLastPage(doc, fontBold, font) {
 /**
  * Verifica si hay espacio suficiente en la página actual.
  * Si no hay espacio, crea una nueva página y devuelve la referencia actualizada.
- * @param {Object} ctx - Contexto con doc, currentPage, y, isFirstPage
+ * @param {Object} ctx - Contexto con doc, currentPage, y
  * @param {number} neededHeight - Altura necesaria para el siguiente elemento
  * @returns {Object} - Contexto actualizado con la página actual y nueva posición Y
  */
 function ensureSpace(ctx, neededHeight) {
-  const minY = ctx.isFirstPage ? MIN_Y_FIRST_PAGE : MIN_Y_OTHER_PAGES;
-  
-  if (ctx.y - neededHeight < minY) {
+  if (ctx.y - neededHeight < MIN_Y_CONTENT) {
     // No hay espacio, crear nueva página
     const newPage = ctx.doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
     ctx.currentPage = newPage;
     ctx.y = PAGE_HEIGHT - MARGIN;
-    ctx.isFirstPage = false;
   }
   
   return ctx;
@@ -249,8 +253,7 @@ async function generatePresupuestoPdf(data, logoBuffer, orden) {
   let ctx = {
     doc,
     currentPage: page,
-    y: height - MARGIN,
-    isFirstPage: true
+    y: height - MARGIN
   };
 
   // --- Logo: usar buffer enviado desde la web; si no, intentar archivo local ---
@@ -651,7 +654,7 @@ async function generatePresupuestoPdf(data, logoBuffer, orden) {
   }
 
   embedOrdenInMetadata(doc, orden);
-  drawBankInfoOnLastPage(doc, fontBold, font);
+  drawBankInfoOnLastPage(doc, fontBold, font, y);
   drawFooterOnAllPages(doc, fontItalic);
   const pdfBytes = await doc.save();
   return pdfBytes;
