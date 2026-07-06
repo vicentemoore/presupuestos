@@ -50,6 +50,14 @@ const BANK_FONT_SIZE_LINE = 9;
 const BANK_LINE_HEIGHT = 11;
 const BANK_BOTTOM_PAD = 30; // separación sobre el footer de 7 días
 
+// Altura total reservada para zona bancaria + footer (para paginación)
+const BANK_SECTION_HEIGHT = BANK_BOTTOM_PAD + (BANK_LINES.length + 1) * BANK_LINE_HEIGHT + 10;
+const FOOTER_RESERVED_HEIGHT = FOOTER_Y + BANK_SECTION_HEIGHT;
+// Margen mínimo donde el contenido puede llegar en la primera página
+const MIN_Y_FIRST_PAGE = FOOTER_RESERVED_HEIGHT + 20;
+// Margen mínimo para páginas siguientes (solo footer, sin datos bancarios)
+const MIN_Y_OTHER_PAGES = FOOTER_Y + 30;
+
 const ORDEN_PREFIX = 'PRESUPUESTOS_ORDEN_V1:';
 
 function safeOrdenForEmbed(orden) {
@@ -131,10 +139,11 @@ function drawFooterOnAllPages(doc, font) {
   }
 }
 
-function drawBankInfoOnFirstPage(doc, fontBold, font) {
+function drawBankInfoOnLastPage(doc, fontBold, font) {
   const pages = doc.getPages();
   if (!pages || pages.length === 0) return;
-  const page = pages[0];
+  // Dibujar en la ÚLTIMA página para evitar superposición con contenido
+  const page = pages[pages.length - 1];
   const { width } = page.getSize();
 
   // Dibujar centrado, por encima del footer de 7 días
@@ -161,6 +170,27 @@ function drawBankInfoOnFirstPage(doc, fontBold, font) {
     });
     y -= BANK_LINE_HEIGHT;
   }
+}
+
+/**
+ * Verifica si hay espacio suficiente en la página actual.
+ * Si no hay espacio, crea una nueva página y devuelve la referencia actualizada.
+ * @param {Object} ctx - Contexto con doc, currentPage, y, isFirstPage
+ * @param {number} neededHeight - Altura necesaria para el siguiente elemento
+ * @returns {Object} - Contexto actualizado con la página actual y nueva posición Y
+ */
+function ensureSpace(ctx, neededHeight) {
+  const minY = ctx.isFirstPage ? MIN_Y_FIRST_PAGE : MIN_Y_OTHER_PAGES;
+  
+  if (ctx.y - neededHeight < minY) {
+    // No hay espacio, crear nueva página
+    const newPage = ctx.doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+    ctx.currentPage = newPage;
+    ctx.y = PAGE_HEIGHT - MARGIN;
+    ctx.isFirstPage = false;
+  }
+  
+  return ctx;
 }
 
 /**
@@ -212,8 +242,16 @@ async function generatePresupuestoPdf(data, logoBuffer, orden) {
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
   const fontItalic = await doc.embedFont(StandardFonts.HelveticaOblique);
-  const page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+  let page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
   const { height } = page.getSize();
+  
+  // Contexto de paginación
+  let ctx = {
+    doc,
+    currentPage: page,
+    y: height - MARGIN,
+    isFirstPage: true
+  };
 
   // --- Logo: usar buffer enviado desde la web; si no, intentar archivo local ---
   let logoBytes = logoBuffer && Buffer.isBuffer(logoBuffer) ? logoBuffer : null;
@@ -384,7 +422,14 @@ async function generatePresupuestoPdf(data, logoBuffer, orden) {
   });
   y -= ROW_HEIGHT + 14;
 
+  // Actualizar contexto con la posición Y actual
+  ctx.y = y;
+  
   // Repuestos (bien separado del encabezado; descripción con margen y wrap completo)
+  ctx = ensureSpace(ctx, ROW_HEIGHT + LINE_HEIGHT);
+  page = ctx.currentPage;
+  y = ctx.y;
+  
   page.drawText('Repuestos', {
     x: MARGIN,
     y,
@@ -393,12 +438,21 @@ async function generatePresupuestoPdf(data, logoBuffer, orden) {
     color: black,
   });
   y -= ROW_HEIGHT;
+  
   for (const item of data.repuestos) {
     const cantidad = Math.max(1, parseInt(item.cantidad, 10) || 1);
     const descBase = String(item.descripcion || '').trim();
     const descSuffix = cantidad > 1 ? ' (x' + cantidad + ')' : '';
     const fullDesc = descBase + descSuffix;
     const descLines = wrapTextByWidth(fullDesc, font, FONT_SIZE, DESC_MAX_WIDTH);
+    const itemHeight = Math.max(ROW_HEIGHT, descLines.length * LINE_HEIGHT);
+    
+    // Verificar espacio antes de dibujar cada ítem
+    ctx.y = y;
+    ctx = ensureSpace(ctx, itemHeight);
+    page = ctx.currentPage;
+    y = ctx.y;
+    
     const firstLineY = y;
     for (let i = 0; i < descLines.length; i++) {
       page.drawText(descLines[i], {
@@ -423,6 +477,11 @@ async function generatePresupuestoPdf(data, logoBuffer, orden) {
   // Barra de "Depósito inicial de trabajos" (total repuestos) antes de Mano de Obra
   // Menos aire arriba, más aire abajo (para que no quede pegado con "Mano de Obra")
   y -= 2;
+  ctx.y = y;
+  ctx = ensureSpace(ctx, ROW_HEIGHT + 20);
+  page = ctx.currentPage;
+  y = ctx.y;
+  
   drawRect(page, MARGIN, y - ROW_HEIGHT, CONTENT_WIDTH, ROW_HEIGHT, BORDER_THICK);
   drawLine(page, MARGIN + COL_DESC_WIDTH, y, MARGIN + COL_DESC_WIDTH, y - ROW_HEIGHT, BORDER_THICK);
   page.drawText('Depósito inicial de trabajos', {
@@ -442,6 +501,11 @@ async function generatePresupuestoPdf(data, logoBuffer, orden) {
   y -= ROW_HEIGHT + 18;
 
   // Mano de Obra
+  ctx.y = y;
+  ctx = ensureSpace(ctx, ROW_HEIGHT + LINE_HEIGHT);
+  page = ctx.currentPage;
+  y = ctx.y;
+  
   page.drawText('Mano de Obra', {
     x: MARGIN,
     y,
@@ -450,12 +514,21 @@ async function generatePresupuestoPdf(data, logoBuffer, orden) {
     color: black,
   });
   y -= ROW_HEIGHT;
+  
   for (const item of data.manoDeObra) {
     const cantidad = Math.max(1, parseInt(item.cantidad, 10) || 1);
     const descBase = String(item.descripcion || '').trim();
     const descSuffix = cantidad > 1 ? ' (x' + cantidad + ')' : '';
     const fullDesc = descBase + descSuffix;
     const descLines = wrapTextByWidth(fullDesc, font, FONT_SIZE, DESC_MAX_WIDTH);
+    const itemHeight = Math.max(ROW_HEIGHT, descLines.length * LINE_HEIGHT);
+    
+    // Verificar espacio antes de dibujar cada ítem
+    ctx.y = y;
+    ctx = ensureSpace(ctx, itemHeight);
+    page = ctx.currentPage;
+    y = ctx.y;
+    
     const firstLineY = y;
     for (let i = 0; i < descLines.length; i++) {
       page.drawText(descLines[i], {
@@ -500,6 +573,13 @@ async function generatePresupuestoPdf(data, logoBuffer, orden) {
   summaryRows.push({ label: 'Saldo a pagar', value: formatMoneda(saldoAPagar), fontLeft: fontBold, fontRight: fontBold, thick: true });
 
   const summaryHeight = summaryRows.length * ROW_HEIGHT;
+  
+  // Verificar espacio para el resumen completo
+  ctx.y = y;
+  ctx = ensureSpace(ctx, summaryHeight + 20);
+  page = ctx.currentPage;
+  y = ctx.y;
+  
   drawRect(page, MARGIN, y - summaryHeight, CONTENT_WIDTH, summaryHeight, BORDER_THICK);
   drawLine(page, MARGIN + COL_DESC_WIDTH, y, MARGIN + COL_DESC_WIDTH, y - summaryHeight, BORDER_THICK);
   for (let i = 1; i < summaryRows.length; i++) {
@@ -531,6 +611,14 @@ async function generatePresupuestoPdf(data, logoBuffer, orden) {
     const labelNota = 'Nota: ';
     const labelNotaWidth = fontBold.widthOfTextAtSize(labelNota, FONT_SIZE);
     const notaLines = wrapTextByWidth(nota, font, FONT_SIZE, CONTENT_WIDTH - 12 - labelNotaWidth);
+    const notaHeight = notaLines.length * LINE_HEIGHT + LINE_HEIGHT;
+    
+    // Verificar espacio para la nota
+    ctx.y = y;
+    ctx = ensureSpace(ctx, notaHeight);
+    page = ctx.currentPage;
+    y = ctx.y;
+    
     page.drawText(labelNota, {
       x: MARGIN + 6,
       y,
@@ -563,7 +651,7 @@ async function generatePresupuestoPdf(data, logoBuffer, orden) {
   }
 
   embedOrdenInMetadata(doc, orden);
-  drawBankInfoOnFirstPage(doc, fontBold, font);
+  drawBankInfoOnLastPage(doc, fontBold, font);
   drawFooterOnAllPages(doc, fontItalic);
   const pdfBytes = await doc.save();
   return pdfBytes;
